@@ -1,0 +1,91 @@
+CREATE DATABASE nono;
+USE nono;
+
+-- Entidades principales
+CREATE TABLE Cliente (
+    id_cliente INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(100) NOT NULL,
+    correo VARCHAR(100) UNIQUE NOT NULL,
+    domicilio VARCHAR(255) NOT NULL,
+    telefono VARCHAR(15) NOT NULL
+);
+
+CREATE TABLE Repartidor (
+    id_repartidor INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(100) NOT NULL,
+    telefono VARCHAR(15) NOT NULL,
+    disponible BOOLEAN DEFAULT TRUE -- Nueva columna que indica si el repartidor está disponible
+);
+
+CREATE TABLE Plato (
+    id_plato INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    precio DECIMAL(10, 2) NOT NULL,
+    disponible BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE Promocion (
+    id_promocion INT PRIMARY KEY AUTO_INCREMENT,
+    tipo ENUM('Combo', 'Descuento') NOT NULL,
+    descripcion TEXT,
+    monto_minimo DECIMAL(10, 2),
+    descuento_porcentaje DECIMAL(5, 2),
+    disponible BOOLEAN DEFAULT TRUE
+);
+
+-- Nueva tabla para asociar platos a los combos
+CREATE TABLE ComboPlato (
+    id_combo_plato INT PRIMARY KEY AUTO_INCREMENT,
+    id_promocion INT NOT NULL,
+    id_plato INT NOT NULL,
+    FOREIGN KEY (id_promocion) REFERENCES Promocion(id_promocion),
+    FOREIGN KEY (id_plato) REFERENCES Plato(id_plato)
+);
+
+CREATE TABLE Pedido (
+    id_pedido INT PRIMARY KEY AUTO_INCREMENT,
+    id_cliente INT NOT NULL,
+    id_repartidor INT, -- Nueva columna para vincular el repartidor
+    domicilio_entrega VARCHAR(255),
+    estado ENUM('Pendiente', 'Aceptado', 'Rechazado', 'Preparando', 'Entregado') DEFAULT 'Pendiente',
+    fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    comentario TEXT,
+    FOREIGN KEY (id_cliente) REFERENCES Cliente(id_cliente),
+    FOREIGN KEY (id_repartidor) REFERENCES Repartidor(id_repartidor) -- Relación con la tabla Repartidor
+);
+
+CREATE TABLE PedidoDetalle (
+    id_pedido_detalle INT PRIMARY KEY AUTO_INCREMENT,
+    id_pedido INT NOT NULL,
+    id_plato INT,
+    cantidad INT NOT NULL,
+    comentario TEXT,
+    FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido),
+    FOREIGN KEY (id_plato) REFERENCES Plato(id_plato)
+);
+
+CREATE TABLE PedidoPromocion (
+    id_pedido_promocion INT PRIMARY KEY AUTO_INCREMENT,
+    id_pedido INT NOT NULL,
+    id_promocion INT NOT NULL,
+    FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido),
+    FOREIGN KEY (id_promocion) REFERENCES Promocion(id_promocion)
+);
+
+CREATE TABLE Reclamo (
+    id_reclamo INT PRIMARY KEY AUTO_INCREMENT,
+    id_pedido INT NOT NULL,
+    descripcion TEXT NOT NULL,
+    fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido)
+);
+
+CREATE TABLE Opinion (
+    id_opinion INT PRIMARY KEY AUTO_INCREMENT,
+    id_pedido INT NOT NULL,
+    puntuacion INT CHECK(puntuacion BETWEEN 1 AND 5),
+    comentario TEXT,
+    fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido)
+);

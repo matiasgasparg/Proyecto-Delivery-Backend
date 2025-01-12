@@ -3,6 +3,14 @@ from flask_cors import CORS
 from config import Config
 
 from .routes.plato_bp import plato_bp
+from .routes.cliente_bp import cliente_bp
+from .routes.repartidor_bp import repartidor_bp
+from .routes.promocion_bp import promocion_bp
+from .routes.comboplato_bp import comboplato_bp
+from .routes.pedido_bp import pedido_bp
+from .routes.pedidodetalle_bp import pedidodetalle_bp
+from .routes.reclamo_bp import reclamo_bp
+from .routes.opinion_bp import opinion_bp
 from .routes.error_handlers import errors
 from .database import DatabaseConnection
 
@@ -32,8 +40,16 @@ def init_app():
     # Configurar la conexión a la base de datos utilizando los parámetros definidos en la configuración.
     DatabaseConnection.set_config(app.config)
 
-    # Registrar el Blueprint de las rutas relacionadas con los platos, con el prefijo '/platos'.
+    # Registrar los Blueprints de las rutas relacionadas con las diferentes entidades.
     app.register_blueprint(plato_bp, url_prefix='/platos')
+    app.register_blueprint(cliente_bp, url_prefix='/clientes')
+    app.register_blueprint(repartidor_bp, url_prefix='/repartidores')
+    app.register_blueprint(promocion_bp, url_prefix='/promociones')
+    app.register_blueprint(comboplato_bp, url_prefix='/combos')
+    app.register_blueprint(pedido_bp, url_prefix='/pedidos')
+    app.register_blueprint(pedidodetalle_bp, url_prefix='/pedidos-detalle')
+    app.register_blueprint(reclamo_bp, url_prefix='/reclamos')
+    app.register_blueprint(opinion_bp, url_prefix='/opiniones')
 
     # Registrar el Blueprint para el manejo centralizado de errores personalizados.
     app.register_blueprint(errors)

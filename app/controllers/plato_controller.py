@@ -1,6 +1,5 @@
-from flask import Flask, request, jsonify
+from flask import request, jsonify
 from ..models.plato_model import Plato
-from flask_cors import CORS
 from ..models.exceptions import CustomException, InvalidDataError, ProductNotFound, DuplicateError
 
 class PlatoController:
@@ -114,6 +113,12 @@ class PlatoController:
             tuple: JSON con un mensaje y el código de estado HTTP.
         """
         try:
+            # Verificar si el plato existe
+            plato = Plato.get(id_plato)
+            if not plato:
+                raise ProductNotFound(id_plato)  # Lanza un error si no existe el plato
+
+            # Si el plato existe, proceder con la actualización
             data = request.json
             field_to_update = data.get('field')
             value = data.get('value')
@@ -125,7 +130,7 @@ class PlatoController:
             response = Plato.update(id_plato, field_to_update, value)
             return jsonify({'message': response}), 200
         except ProductNotFound as e:
-            return e.get_response()
+            return e.get_response()  # Respuesta personalizada para plato no encontrado.
         except InvalidDataError as e:
             return e.get_response()
         except Exception as e:
@@ -143,9 +148,12 @@ class PlatoController:
             tuple: JSON con un mensaje y el código de estado HTTP.
         """
         try:
+            plato=Plato.get(id_plato)
+            if not plato:
+                raise ProductNotFound(f"Plato con ID {id_plato} no encontrado.")
             response, status_code = Plato.delete(id_plato)
             return jsonify(response), status_code
         except ProductNotFound as e:
-            return e.get_response()
+            return e.get_response()  # Respuesta personalizada para plato no encontrado.
         except Exception as e:
             return jsonify({'error': 'Error en la solicitud'}), 500
