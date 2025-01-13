@@ -76,15 +76,16 @@ class PlatoController:
             - `descripcion` (str, opcional): Descripción del plato.
             - `precio` (float): Precio del plato.
             - `disponible` (bool): Indica si el plato está disponible.
+            - `tipo_plato` (str): Tipo del plato (por ejemplo, 'entrante', 'principal', 'postre').
 
         Returns:
             tuple: JSON con un mensaje y el código de estado HTTP.
         """
         try:
             data = request.json
-            if not data.get('nombre') or not isinstance(data.get('precio'), (int, float)):
-                raise InvalidDataError("El campo 'nombre' es obligatorio y 'precio' debe ser un número válido.")
-            
+            if not data.get('nombre') or not isinstance(data.get('precio'), (int, float)) or not data.get('tipo_plato'):
+                raise InvalidDataError("El campo 'nombre', 'precio' y 'tipo_plato' son obligatorios.")
+
             new_plato = Plato(**data)
             if Plato.create(new_plato):
                 return jsonify({'message': 'Plato creado exitosamente'}), 201
@@ -106,7 +107,7 @@ class PlatoController:
             id_plato (int): ID del plato a actualizar.
 
         El cuerpo de la solicitud debe incluir:
-            - `field` (str): Campo a actualizar (nombre, descripcion, precio, disponible).
+            - `field` (str): Campo a actualizar (nombre, descripcion, precio, disponible, tipo_plato).
             - `value` (any): Nuevo valor para el campo.
 
         Returns:
@@ -122,7 +123,7 @@ class PlatoController:
             data = request.json
             field_to_update = data.get('field')
             value = data.get('value')
-            valid_fields = ['nombre', 'descripcion', 'precio', 'disponible']
+            valid_fields = ['nombre', 'descripcion', 'precio', 'disponible', 'tipo_plato']  # Añadimos tipo_plato
 
             if field_to_update not in valid_fields:
                 raise InvalidDataError(f"'{field_to_update}' no es un campo válido para actualizar.")

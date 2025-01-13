@@ -17,30 +17,34 @@ CREATE TABLE Repartidor (
     disponible BOOLEAN DEFAULT TRUE -- Nueva columna que indica si el repartidor está disponible
 );
 
+-- Modificación de la tabla Plato para agregar tipo_plato
 CREATE TABLE Plato (
     id_plato INT PRIMARY KEY AUTO_INCREMENT,
     nombre VARCHAR(100) NOT NULL,
     descripcion TEXT,
     precio DECIMAL(10, 2) NOT NULL,
-    disponible BOOLEAN DEFAULT TRUE
+    disponible BOOLEAN DEFAULT TRUE,
+    tipo_plato INT DEFAULT 1 -- 1 significa que es un plato normal, 2 significa que es parte de un combo
 );
 
 CREATE TABLE Promocion (
     id_promocion INT PRIMARY KEY AUTO_INCREMENT,
-    tipo ENUM('Combo', 'Descuento') NOT NULL,
-    descripcion TEXT,
-    monto_minimo DECIMAL(10, 2),
-    descuento_porcentaje DECIMAL(5, 2),
-    disponible BOOLEAN DEFAULT TRUE
+    tipo ENUM('Combo', 'Descuento') NOT NULL, -- Tipo de promoción
+    descripcion TEXT NOT NULL,               -- Descripción general de la promoción
+    monto_minimo DECIMAL(10, 2),             -- Monto mínimo para aplicar descuento (si tipo = 'Descuento')
+    descuento_porcentaje DECIMAL(5, 2),      -- Porcentaje de descuento (si tipo = 'Descuento')
+    precio DECIMAL(10, 2),                   -- Precio del combo (si tipo = 'Combo')
+    disponible BOOLEAN DEFAULT TRUE          -- Disponibilidad de la promoción
 );
 
--- Nueva tabla para asociar platos a los combos
-CREATE TABLE ComboPlato (
-    id_combo_plato INT PRIMARY KEY AUTO_INCREMENT,
-    id_promocion INT NOT NULL,
-    id_plato INT NOT NULL,
-    FOREIGN KEY (id_promocion) REFERENCES Promocion(id_promocion),
-    FOREIGN KEY (id_plato) REFERENCES Plato(id_plato)
+
+-- Tabla PedidoPromocion
+CREATE TABLE PedidoPromocion (
+    id_pedido_promocion INT PRIMARY KEY AUTO_INCREMENT,
+    id_pedido INT NOT NULL,                  -- Pedido al que se aplica la promoción
+    id_promocion INT NOT NULL,               -- Promoción aplicada (Combo o Descuento)
+    FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido),
+    FOREIGN KEY (id_promocion) REFERENCES Promocion(id_promocion)
 );
 
 CREATE TABLE Pedido (
@@ -63,14 +67,6 @@ CREATE TABLE PedidoDetalle (
     comentario TEXT,
     FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido),
     FOREIGN KEY (id_plato) REFERENCES Plato(id_plato)
-);
-
-CREATE TABLE PedidoPromocion (
-    id_pedido_promocion INT PRIMARY KEY AUTO_INCREMENT,
-    id_pedido INT NOT NULL,
-    id_promocion INT NOT NULL,
-    FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido),
-    FOREIGN KEY (id_promocion) REFERENCES Promocion(id_promocion)
 );
 
 CREATE TABLE Reclamo (

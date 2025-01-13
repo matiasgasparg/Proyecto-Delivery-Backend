@@ -71,10 +71,16 @@ class Cliente:
             DatabaseConnection.close_connection()
 
     @classmethod
-    def update(cls, id_cliente, campo, nuevo_valor):
+    def update(cls, id_plato, campo, nuevo_valor):
         try:
-            query = f"UPDATE Cliente SET {campo} = %s WHERE id_cliente = %s"
-            params = (nuevo_valor, id_cliente)
+            # Validar el campo
+            campos_validos = ['nombre', 'descripcion', 'precio', 'tipo_plato', 'disponible']
+            if campo not in campos_validos:
+                raise ValueError("Campo no válido para actualización")
+
+            # Construir la consulta SQL de actualización
+            query = f"UPDATE plato SET {campo} = %s WHERE id_plato = %s"
+            params = (nuevo_valor, id_plato)
             DatabaseConnection.execute_query(query, params=params)
             return f'{campo.capitalize()} actualizado exitosamente'
         except Exception as e:

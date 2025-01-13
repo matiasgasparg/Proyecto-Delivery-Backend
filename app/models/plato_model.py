@@ -12,6 +12,7 @@ class Plato:
         - `descripcion` (str): Descripción del plato.
         - `precio` (float): Precio del plato.
         - `disponible` (bool): Indica si el plato está disponible.
+        - `tipo_plato` (str): Tipo de plato (por ejemplo, 'entrante', 'principal', 'postre').
     """
 
     def __init__(self, **kwargs):
@@ -26,6 +27,7 @@ class Plato:
         self.descripcion = kwargs.get('descripcion')
         self.precio = kwargs.get('precio')
         self.disponible = kwargs.get('disponible')
+        self.tipo_plato = kwargs.get('tipo_plato')  # Atributo nuevo
 
     @classmethod
     def get(cls, id_plato):
@@ -40,14 +42,14 @@ class Plato:
         """
         try:
             query = """
-                SELECT id_plato, nombre, descripcion, precio, disponible
+                SELECT id_plato, nombre, descripcion, precio, disponible, tipo_plato
                 FROM plato
                 WHERE id_plato = %s
             """
             result = DatabaseConnection.fetch_one(query, params=(id_plato,))
             if result:
-                id_plato, nombre, descripcion, precio, disponible = result
-                return cls(id_plato=id_plato, nombre=nombre, descripcion=descripcion, precio=precio, disponible=disponible)
+                id_plato, nombre, descripcion, precio, disponible, tipo_plato = result
+                return cls(id_plato=id_plato, nombre=nombre, descripcion=descripcion, precio=precio, disponible=disponible, tipo_plato=tipo_plato)
             return None
         except Exception as e:
             print("Error al obtener el plato:", e)
@@ -65,13 +67,13 @@ class Plato:
         """
         try:
             query = """
-                SELECT id_plato, nombre, descripcion, precio, disponible
+                SELECT id_plato, nombre, descripcion, precio, disponible, tipo_plato
                 FROM plato
             """
             results = DatabaseConnection.fetch_all(query)
             platos = [
-                cls(id_plato=id_plato, nombre=nombre, descripcion=descripcion, precio=precio, disponible=disponible)
-                for id_plato, nombre, descripcion, precio, disponible in results
+                cls(id_plato=id_plato, nombre=nombre, descripcion=descripcion, precio=precio, disponible=disponible, tipo_plato=tipo_plato)
+                for id_plato, nombre, descripcion, precio, disponible, tipo_plato in results
             ]
             return platos
         except Exception as e:
@@ -93,40 +95,15 @@ class Plato:
         """
         try:
             query = """
-                INSERT INTO plato (nombre, descripcion, precio, disponible)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO plato (nombre, descripcion, precio, disponible, tipo_plato)
+                VALUES (%s, %s, %s, %s, %s)
             """
-            params = (plato.nombre, plato.descripcion, plato.precio, plato.disponible)
+            params = (plato.nombre, plato.descripcion, plato.precio, plato.disponible, plato.tipo_plato)
             DatabaseConnection.execute_query(query, params=params)
             return True
         except Exception as e:
             print("Error al crear el plato:", e)
             return False
-        finally:
-            DatabaseConnection.close_connection()
-
-    @classmethod
-    def delete(cls, id_plato):
-        """
-        Elimina un plato de la base de datos por su ID.
-
-        Args:
-            id_plato (int): ID del plato a eliminar.
-
-        Returns:
-            tuple: Mensaje de resultado y código de estado HTTP.
-        """
-        try:
-            if not cls.exists(id_plato):
-                raise ProductNotFound(id_plato)  # Lanza excepción si no existe.
-
-            query = "DELETE FROM plato WHERE id_plato = %s"
-            params = (id_plato,)
-            DatabaseConnection.execute_query(query, params=params)
-            return {'message': 'Plato eliminado exitosamente'}, 204
-        except Exception as e:
-            print("Error al eliminar el plato:", e)
-            return {'message': 'Error en la solicitud'}, 500
         finally:
             DatabaseConnection.close_connection()
 
@@ -152,6 +129,7 @@ class Plato:
                 'descripcion': "UPDATE plato SET descripcion = %s WHERE id_plato = %s",
                 'precio': "UPDATE plato SET precio = %s WHERE id_plato = %s",
                 'disponible': "UPDATE plato SET disponible = %s WHERE id_plato = %s",
+                'tipo_plato': "UPDATE plato SET tipo_plato = %s WHERE id_plato = %s",  # Campo nuevo
             }
 
             if campo not in campos_validos:
@@ -182,3 +160,31 @@ class Plato:
         params = (id_plato,)
         result = DatabaseConnection.fetch_one(query, params=params)
         return result[0] > 0
+
+
+    @classmethod
+    def delete(cls, id_plato):
+        """
+        Elimina un plato de la base de datos por su ID.
+
+        Args:
+            id_plato (int): ID del plato a eliminar.
+
+        Returns:
+            tuple: Mensaje de resultado y código de estado HTTP.
+        """
+        try:
+            if not cls.exists(id_plato):
+                raise ProductNotFound(id_plato)  # Lanza excepción si no existe.
+
+            query = "DELETE FROM plato WHERE id_plato = %s"
+            params = (id_plato,)
+            DatabaseConnection.execute_query(query, params=params)
+            return {'message': 'Plato eliminado exitosamente'}, 204
+        except Exception as e:
+            print("Error al eliminar el plato:", e)
+            return {'message': 'Error en la solicitud'}, 500
+        finally:
+            DatabaseConnection.close_connection()
+
+ 

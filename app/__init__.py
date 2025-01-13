@@ -6,7 +6,6 @@ from .routes.plato_bp import plato_bp
 from .routes.cliente_bp import cliente_bp
 from .routes.repartidor_bp import repartidor_bp
 from .routes.promocion_bp import promocion_bp
-from .routes.comboplato_bp import comboplato_bp
 from .routes.pedido_bp import pedido_bp
 from .routes.pedidodetalle_bp import pedidodetalle_bp
 from .routes.reclamo_bp import reclamo_bp
@@ -45,7 +44,6 @@ def init_app():
     app.register_blueprint(cliente_bp, url_prefix='/clientes')
     app.register_blueprint(repartidor_bp, url_prefix='/repartidores')
     app.register_blueprint(promocion_bp, url_prefix='/promociones')
-    app.register_blueprint(comboplato_bp, url_prefix='/combos')
     app.register_blueprint(pedido_bp, url_prefix='/pedidos')
     app.register_blueprint(pedidodetalle_bp, url_prefix='/pedidos-detalle')
     app.register_blueprint(reclamo_bp, url_prefix='/reclamos')
