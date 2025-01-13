@@ -27,6 +27,7 @@ CREATE TABLE Plato (
     tipo_plato INT DEFAULT 1 -- 1 significa que es un plato normal, 2 significa que es parte de un combo
 );
 
+-- Modificación de la tabla Promocion para agregar id_plato con CASCADE
 CREATE TABLE Promocion (
     id_promocion INT PRIMARY KEY AUTO_INCREMENT,
     tipo ENUM('Combo', 'Descuento') NOT NULL, -- Tipo de promoción
@@ -34,9 +35,10 @@ CREATE TABLE Promocion (
     monto_minimo DECIMAL(10, 2),             -- Monto mínimo para aplicar descuento (si tipo = 'Descuento')
     descuento_porcentaje DECIMAL(5, 2),      -- Porcentaje de descuento (si tipo = 'Descuento')
     precio DECIMAL(10, 2),                   -- Precio del combo (si tipo = 'Combo')
-    disponible BOOLEAN DEFAULT TRUE          -- Disponibilidad de la promoción
+    disponible BOOLEAN DEFAULT TRUE,          -- Disponibilidad de la promoción
+    id_plato INT,                            -- Relación con la tabla Plato
+    FOREIGN KEY (id_plato) REFERENCES Plato(id_plato) ON DELETE CASCADE ON UPDATE CASCADE -- Clave foránea con CASCADE
 );
-
 
 -- Tabla PedidoPromocion
 CREATE TABLE PedidoPromocion (
