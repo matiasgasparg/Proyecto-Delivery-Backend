@@ -9,3 +9,4 @@ pedido_bp.route('/crear', methods=['POST'])(PedidoController.create)
 pedido_bp.route('/<int:id_pedido>', methods=['PUT'])(PedidoController.update)
 pedido_bp.route('/<int:id_pedido>', methods=['DELETE'])(PedidoController.delete)
 
+pedido_bp.route('/<int:id_pedido>/modify-platos', methods=['PUT'])(PedidoController.modify_platos)

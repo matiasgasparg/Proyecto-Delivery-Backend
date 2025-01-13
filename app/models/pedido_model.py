@@ -10,6 +10,7 @@ class Pedido:
         self.fecha_hora = kwargs.get('fecha_hora')
         self.comentario = kwargs.get('comentario')
         self.platos = kwargs.get('platos', [])  # Nueva propiedad para los platos del pedido
+        self.pagado = kwargs.get('pagado', 2)  # Nuevo atributo
 
     @classmethod
     def get(cls, id_pedido):
@@ -57,7 +58,7 @@ class Pedido:
     @classmethod
     def create(cls, pedido):
         try:
-            # Primero, crear el pedido en la tabla Pedido
+            # Crear el pedido en la tabla Pedido
             query = """
                 INSERT INTO Pedido (id_cliente, id_repartidor, domicilio_entrega, estado, comentario)
                 VALUES (%s, %s, %s, %s, %s)
@@ -67,13 +68,14 @@ class Pedido:
                 pedido.estado, pedido.comentario
             )
             DatabaseConnection.execute_query(query, params=params)
-
-            # Obtener el id del pedido recién creado
+    
+            # Obtener el ID del pedido recién creado
             query = "SELECT LAST_INSERT_ID()"
             result = DatabaseConnection.fetch_one(query)
             id_pedido = result[0]
-
-            # Ahora crear los detalles del pedido
+            pedido.id_pedido = id_pedido  # Actualizamos el ID del pedido
+    
+            # Crear los detalles del pedido
             for plato in pedido.platos:
                 detalle_query = """
                     INSERT INTO PedidoDetalle (id_pedido, id_plato, cantidad, comentario)
@@ -82,37 +84,43 @@ class Pedido:
                 detalle_params = (
                     id_pedido, plato['id_plato'], plato['cantidad'], plato.get('comentario', '')
                 )
-                DatabaseConnection.execute_query(detalle_query, params=detalle_params)
-
-            return True
+                try:
+                    DatabaseConnection.execute_query(detalle_query, params=detalle_params)
+                except Exception as e:
+                    print(f"Error al crear el detalle del pedido para el plato {plato['id_plato']}: {e}")
+                    raise Exception(f"No se pudo crear el detalle para el plato {plato['id_plato']}.")
+    
+            return True  # Si todo se ejecutó correctamente
+    
         except Exception as e:
             print("Error al crear el pedido:", e)
             return False
         finally:
             DatabaseConnection.close_connection()
-
     @classmethod
-    def delete(cls, id_pedido):
+    def delete_by_pedido_id(cls, id_pedido):
         try:
-            query = "DELETE FROM Pedido WHERE id_pedido = %s"
+            query = "DELETE FROM PedidoDetalle WHERE id_pedido = %s"
             params = (id_pedido,)
             DatabaseConnection.execute_query(query, params=params)
-            return {'message': 'Pedido eliminado exitosamente'}, 204
         except Exception as e:
-            print("Error al eliminar el pedido:", e)
-            return {'message': 'Error en la solicitud'}, 500
+            print(f"Error al eliminar detalles para el pedido {id_pedido}: {e}")
+            raise Exception("No se pudieron eliminar los detalles del pedido.")
         finally:
             DatabaseConnection.close_connection()
+    
 
     @classmethod
-    def update(cls, id_pedido, campo, nuevo_valor):
+    def update(cls, id_pedido, field, value):
+        
         try:
-            query = f"UPDATE Pedido SET {campo} = %s WHERE id_pedido = %s"
-            params = (nuevo_valor, id_pedido)
+            # Construir la consulta de actualización dinámicamente
+            query = f"UPDATE Pedido SET {field} = %s WHERE id_pedido = %s"
+            params = (value, id_pedido)
             DatabaseConnection.execute_query(query, params=params)
-            return f'{campo.capitalize()} actualizado exitosamente'
+            return f"Pedido {id_pedido} actualizado exitosamente."
         except Exception as e:
-            print(f"Error al actualizar el campo '{campo}':", e)
-            return 'Error en la solicitud'
+            print(f"Error al actualizar el pedido {id_pedido}: {e}")
+            raise Exception("Error al actualizar el pedido.")
         finally:
             DatabaseConnection.close_connection()

@@ -11,27 +11,23 @@ class PedidoDetalle:
     @classmethod
     def get_by_pedido_id(cls, id_pedido):
         try:
-            query = "SELECT * FROM PedidoDetalle WHERE id_pedido = %s"
-            result = DatabaseConnection.fetch_all(query, params=(id_pedido,))
-
-            # Verificar que 'result' sea una lista de tuplas
-            # Convertir cada tupla a un diccionario antes de usar ** para crear objetos
-            detalle_list = []
-            for detalle in result:
-                detalle_dict = {
-                    'id_pedido_detalle': detalle[0],
-                    'id_pedido': detalle[1],
-                    'id_plato': detalle[2],
-                    'cantidad': detalle[3],
-                    'comentario': detalle[4]
-                }
-                detalle_list.append(cls(**detalle_dict))  # Pasamos un diccionario para crear el objeto
-
-            return detalle_list
+            query = """
+                SELECT id_pedido_detalle, id_plato, cantidad, comentario
+                FROM PedidoDetalle
+                WHERE id_pedido = %s
+            """
+            results = DatabaseConnection.fetch_all(query, params=(id_pedido,))
+            return [
+                cls(
+                    id_pedido_detalle=row[0], id_plato=row[1],
+                    cantidad=row[2], comentario=row[3]
+                ) for row in results
+            ]
         except Exception as e:
-            print("Error al obtener detalles del pedido:", e)
+            print(f"Error al obtener detalles del pedido {id_pedido}: {e}")
             return []
-
+        finally:
+            DatabaseConnection.close_connection()
     @classmethod
     def get_all(cls):
         try:
@@ -94,5 +90,16 @@ class PedidoDetalle:
         except Exception as e:
             print(f"Error al actualizar el campo '{campo}':", e)
             return 'Error en la solicitud'
+        finally:
+            DatabaseConnection.close_connection()
+    @classmethod
+    def delete_by_pedido_id_and_plato(cls, id_pedido, id_plato):
+        try:
+            query = "DELETE FROM PedidoDetalle WHERE id_pedido = %s AND id_plato = %s"
+            params = (id_pedido, id_plato)
+            DatabaseConnection.execute_query(query, params=params)
+        except Exception as e:
+            print(f"Error al eliminar el detalle del pedido {id_pedido} para el plato {id_plato}: {e}")
+            raise Exception("No se pudo eliminar el detalle del pedido.")
         finally:
             DatabaseConnection.close_connection()
