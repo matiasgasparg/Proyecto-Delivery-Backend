@@ -88,3 +88,27 @@ class Cliente:
             return 'Error en la solicitud'
         finally:
             DatabaseConnection.close_connection()
+    @classmethod
+    def get_by_email(cls, email):
+        try:
+            query = """
+                SELECT id_cliente, nombre, correo, domicilio, telefono
+                FROM Cliente
+                WHERE correo = %s
+            """
+            result = DatabaseConnection.fetch_one(query, params=(email,))
+            if result:
+                return cls(
+                    id_cliente=result[0], 
+                    nombre=result[1], 
+                    correo=result[2], 
+                    domicilio=result[3], 
+                    telefono=result[4]
+                )
+            return None
+        except Exception as e:
+            print(f"Error al obtener el cliente por email '{email}':", e)
+            return None
+        finally:
+            DatabaseConnection.close_connection()
+    
