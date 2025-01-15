@@ -96,8 +96,7 @@ class PlatoController:
         except DuplicateError as e:
             return e.get_response()
         except Exception as e:
-            return jsonify({'error': 'Error en la solicitud'}), 500
-
+            return jsonify({'error': 'Error inesperado al crear el plato', 'details': str(e)}), 500
     @classmethod
     def update(cls, id_plato):
         """

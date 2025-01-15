@@ -1,91 +1,223 @@
-CREATE DATABASE nono;
-USE nono;
+-- MySQL Workbench Forward Engineering
 
--- Entidades principales
-CREATE TABLE Cliente (
-    id_cliente INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR(100) NOT NULL,
-    correo VARCHAR(100) UNIQUE NOT NULL,
-    domicilio VARCHAR(255) NOT NULL,
-    telefono VARCHAR(15) NOT NULL
-);
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
-CREATE TABLE Repartidor (
-    id_repartidor INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR(100) NOT NULL,
-    telefono VARCHAR(15) NOT NULL,
-    disponible BOOLEAN DEFAULT TRUE -- Nueva columna que indica si el repartidor está disponible
-);
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+-- -----------------------------------------------------
+-- Schema nono
+-- -----------------------------------------------------
 
--- Modificación de la tabla Plato para agregar tipo_plato
-CREATE TABLE Plato (
-    id_plato INT PRIMARY KEY AUTO_INCREMENT,
-    nombre VARCHAR(100) NOT NULL,
-    descripcion TEXT,
-    precio DECIMAL(10, 2) NOT NULL,
-    disponible BOOLEAN DEFAULT TRUE,
-    tipo_plato INT DEFAULT 1 -- 1 significa que es un plato normal, 2 significa que es parte de un combo
-);
+-- -----------------------------------------------------
+-- Schema nono
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS nono DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci ;
+USE nono ;
 
--- Modificación de la tabla Promocion para agregar id_plato con CASCADE
-CREATE TABLE Promocion (
-    id_promocion INT PRIMARY KEY AUTO_INCREMENT,
-    tipo ENUM('Combo', 'Descuento') NOT NULL, -- Tipo de promoción
-    descripcion TEXT NOT NULL,               -- Descripción general de la promoción
-    monto_minimo DECIMAL(10, 2),             -- Monto mínimo para aplicar descuento (si tipo = 'Descuento')
-    descuento_porcentaje DECIMAL(5, 2),      -- Porcentaje de descuento (si tipo = 'Descuento')
-    precio DECIMAL(10, 2),                   -- Precio del combo (si tipo = 'Combo')
-    disponible BOOLEAN DEFAULT TRUE,          -- Disponibilidad de la promoción
-    id_plato INT,                            -- Relación con la tabla Plato
-    FOREIGN KEY (id_plato) REFERENCES Plato(id_plato) ON DELETE CASCADE ON UPDATE CASCADE -- Clave foránea con CASCADE
-);
+-- -----------------------------------------------------
+-- Table nono.admin
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS nono.admin (
+  id INT NOT NULL AUTO_INCREMENT,
+  dni VARCHAR(20) NOT NULL,
+  contraseña VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE INDEX dni (dni ASC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 2
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
--- Tabla PedidoPromocion
-CREATE TABLE PedidoPromocion (
-    id_pedido_promocion INT PRIMARY KEY AUTO_INCREMENT,
-    id_pedido INT NOT NULL,                  -- Pedido al que se aplica la promoción
-    id_promocion INT NOT NULL,               -- Promoción aplicada (Combo o Descuento)
-    FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido),
-    FOREIGN KEY (id_promocion) REFERENCES Promocion(id_promocion)
-);
 
-CREATE TABLE Pedido (
-    id_pedido INT PRIMARY KEY AUTO_INCREMENT,
-    id_cliente INT NOT NULL,
-    id_repartidor INT, -- Nueva columna para vincular el repartidor
-    domicilio_entrega VARCHAR(255),
-    estado ENUM('Pendiente', 'Aceptado', 'Rechazado', 'Preparando', 'Entregado') DEFAULT 'Pendiente',
-    fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    comentario TEXT,
-    comentario pagado INT DEFAULT 2,
+-- -----------------------------------------------------
+-- Table nono.cliente
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS nono.cliente (
+  id_cliente INT NOT NULL AUTO_INCREMENT,
+  nombre VARCHAR(100) NOT NULL,
+  correo VARCHAR(100) NOT NULL,
+  domicilio VARCHAR(255) NOT NULL,
+  telefono VARCHAR(15) NOT NULL,
+  PRIMARY KEY (id_cliente),
+  UNIQUE INDEX correo (correo ASC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 2
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
-    FOREIGN KEY (id_cliente) REFERENCES Cliente(id_cliente),
-    FOREIGN KEY (id_repartidor) REFERENCES Repartidor(id_repartidor) -- Relación con la tabla Repartidor
-);
 
-CREATE TABLE PedidoDetalle (
-    id_pedido_detalle INT PRIMARY KEY AUTO_INCREMENT,
-    id_pedido INT NOT NULL,
-    id_plato INT,
-    cantidad INT NOT NULL,
-    comentario TEXT,
-    FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido),
-    FOREIGN KEY (id_plato) REFERENCES Plato(id_plato)
-);
+-- -----------------------------------------------------
+-- Table nono.repartidor
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS nono.repartidor (
+  id_repartidor INT NOT NULL AUTO_INCREMENT,
+  nombre VARCHAR(100) NOT NULL,
+  telefono VARCHAR(15) NOT NULL,
+  disponible TINYINT(1) NULL DEFAULT '1',
+  PRIMARY KEY (id_repartidor))
+ENGINE = InnoDB
+AUTO_INCREMENT = 2
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
 
-CREATE TABLE Reclamo (
-    id_reclamo INT PRIMARY KEY AUTO_INCREMENT,
-    id_pedido INT NOT NULL,
-    descripcion TEXT NOT NULL,
-    fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido)
-);
 
-CREATE TABLE Opinion (
-    id_opinion INT PRIMARY KEY AUTO_INCREMENT,
-    id_pedido INT NOT NULL,
-    puntuacion INT CHECK(puntuacion BETWEEN 1 AND 5),
-    comentario TEXT,
-    fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_pedido) REFERENCES Pedido(id_pedido)
-);
+-- -----------------------------------------------------
+-- Table nono.pedido
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS nono.pedido (
+  id_pedido INT NOT NULL AUTO_INCREMENT,
+  id_cliente INT NOT NULL,
+  id_repartidor INT NULL DEFAULT NULL,
+  domicilio_entrega VARCHAR(255) NULL DEFAULT NULL,
+  estado ENUM('Pendiente', 'Aceptado', 'Rechazado', 'Preparando', 'Entregado') NULL DEFAULT 'Pendiente',
+  fecha_hora TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  comentario TEXT NULL DEFAULT NULL,
+  pagado TINYINT NULL DEFAULT '2',
+  PRIMARY KEY (id_pedido),
+  INDEX id_cliente (id_cliente ASC) VISIBLE,
+  INDEX id_repartidor (id_repartidor ASC) VISIBLE,
+  CONSTRAINT pedido_ibfk_1
+    FOREIGN KEY (id_cliente)
+    REFERENCES nono.cliente (id_cliente),
+  CONSTRAINT pedido_ibfk_2
+    FOREIGN KEY (id_repartidor)
+    REFERENCES nono.repartidor (id_repartidor))
+ENGINE = InnoDB
+AUTO_INCREMENT = 30
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table nono.opinion
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS nono.opinion (
+  id_opinion INT NOT NULL AUTO_INCREMENT,
+  id_pedido INT NOT NULL,
+  puntuacion INT NULL DEFAULT NULL,
+  comentario TEXT NULL DEFAULT NULL,
+  fecha_hora TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id_opinion),
+  INDEX id_pedido (id_pedido ASC) VISIBLE,
+  CONSTRAINT opinion_ibfk_1
+    FOREIGN KEY (id_pedido)
+    REFERENCES nono.pedido (id_pedido))
+ENGINE = InnoDB
+AUTO_INCREMENT = 2
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table nono.plato
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS nono.plato (
+  id_plato INT NOT NULL AUTO_INCREMENT,
+  nombre VARCHAR(100) NOT NULL,
+  descripcion TEXT NULL DEFAULT NULL,
+  precio DECIMAL(10,2) NOT NULL,
+  disponible TINYINT(1) NULL DEFAULT '1',
+  tipo_plato INT NULL DEFAULT '1',
+  PRIMARY KEY (id_plato))
+ENGINE = InnoDB
+AUTO_INCREMENT = 5
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table nono.pedidodetalle
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS nono.pedidodetalle (
+  id_pedido_detalle INT NOT NULL AUTO_INCREMENT,
+  id_pedido INT NOT NULL,
+  id_plato INT NULL DEFAULT NULL,
+  cantidad INT NOT NULL,
+  comentario TEXT NULL DEFAULT NULL,
+  PRIMARY KEY (id_pedido_detalle),
+  INDEX id_pedido (id_pedido ASC) VISIBLE,
+  INDEX id_plato (id_plato ASC) VISIBLE,
+  CONSTRAINT pedidodetalle_ibfk_1
+    FOREIGN KEY (id_pedido)
+    REFERENCES nono.pedido (id_pedido),
+  CONSTRAINT pedidodetalle_ibfk_2
+    FOREIGN KEY (id_plato)
+    REFERENCES nono.plato (id_plato))
+ENGINE = InnoDB
+AUTO_INCREMENT = 51
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table nono.promocion
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS nono.promocion (
+  id_promocion INT NOT NULL AUTO_INCREMENT,
+  tipo ENUM('Combo', 'Descuento') NOT NULL,
+  descripcion TEXT NOT NULL,
+  monto_minimo DECIMAL(10,2) NULL DEFAULT NULL,
+  descuento_porcentaje DECIMAL(5,2) NULL DEFAULT NULL,
+  precio DECIMAL(10,2) NULL DEFAULT NULL,
+  disponible TINYINT(1) NULL DEFAULT '1',
+  id_plato INT NULL DEFAULT NULL,
+  PRIMARY KEY (id_promocion),
+  INDEX fk_plato (id_plato ASC) VISIBLE,
+  CONSTRAINT fk_plato
+    FOREIGN KEY (id_plato)
+    REFERENCES nono.plato (id_plato)
+    ON DELETE CASCADE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 15
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table nono.pedidopromocion
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS nono.pedidopromocion (
+  id_pedido_promocion INT NOT NULL AUTO_INCREMENT,
+  id_pedido INT NOT NULL,
+  id_promocion INT NOT NULL,
+  PRIMARY KEY (id_pedido_promocion),
+  INDEX id_pedido (id_pedido ASC) VISIBLE,
+  INDEX id_promocion (id_promocion ASC) VISIBLE,
+  CONSTRAINT pedidopromocion_ibfk_1
+    FOREIGN KEY (id_pedido)
+    REFERENCES nono.pedido (id_pedido),
+  CONSTRAINT pedidopromocion_ibfk_2
+    FOREIGN KEY (id_promocion)
+    REFERENCES nono.promocion (id_promocion))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table nono.reclamo
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS nono.reclamo (
+  id_reclamo INT NOT NULL AUTO_INCREMENT,
+  id_pedido INT NOT NULL,
+  descripcion TEXT NOT NULL,
+  fecha_hora TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id_reclamo),
+  INDEX id_pedido (id_pedido ASC) VISIBLE,
+  CONSTRAINT reclamo_ibfk_1
+    FOREIGN KEY (id_pedido)
+    REFERENCES nono.pedido (id_pedido))
+ENGINE = InnoDB
+AUTO_INCREMENT = 2
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
