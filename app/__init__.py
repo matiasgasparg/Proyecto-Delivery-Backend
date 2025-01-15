@@ -11,6 +11,8 @@ from .routes.pedidodetalle_bp import pedidodetalle_bp
 from .routes.reclamo_bp import reclamo_bp
 from .routes.opinion_bp import opinion_bp
 from .routes.error_handlers import errors
+from .routes.admin_bp import admin_bp
+
 from .database import DatabaseConnection
 
 def init_app():
@@ -48,6 +50,7 @@ def init_app():
     app.register_blueprint(pedidodetalle_bp, url_prefix='/pedidos-detalle')
     app.register_blueprint(reclamo_bp, url_prefix='/reclamos')
     app.register_blueprint(opinion_bp, url_prefix='/opiniones')
+    app.register_blueprint(admin_bp, url_prefix='/admin')
 
     # Registrar el Blueprint para el manejo centralizado de errores personalizados.
     app.register_blueprint(errors)

@@ -57,6 +57,8 @@ CREATE TABLE Pedido (
     estado ENUM('Pendiente', 'Aceptado', 'Rechazado', 'Preparando', 'Entregado') DEFAULT 'Pendiente',
     fecha_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     comentario TEXT,
+    comentario pagado INT DEFAULT 2,
+
     FOREIGN KEY (id_cliente) REFERENCES Cliente(id_cliente),
     FOREIGN KEY (id_repartidor) REFERENCES Repartidor(id_repartidor) -- Relación con la tabla Repartidor
 );

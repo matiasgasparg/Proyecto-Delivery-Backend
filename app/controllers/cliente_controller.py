@@ -22,7 +22,26 @@ class ClienteController:
             return e.get_response()
         except Exception as e:
             return jsonify({'error': 'Error en la solicitud'}), 500
-
+    @classmethod
+    def get_by_email(cls,email):
+        try:
+            cliente = Cliente.get_by_email(email)  # Llama al método DAO
+            if cliente:
+                serialized_cliente = {
+                    "id_cliente": cliente.id_cliente,
+                    "nombre": cliente.nombre,
+                    "correo": cliente.correo,
+                    "domicilio": cliente.domicilio,
+                    "telefono": cliente.telefono
+                }
+                return jsonify(serialized_cliente), 200
+            else:
+                raise ProductNotFound(email)  # Excepción personalizada para el cliente no encontrado
+        except ProductNotFound as e:
+            return e.get_response()  # Maneja la excepción personalizada
+        except Exception as e:
+            print(f"Error al procesar la solicitud para email '{email}':", e)
+            return jsonify({'error': 'Error en la solicitud'}), 500
     @classmethod
     def get_all(cls):
         try:
