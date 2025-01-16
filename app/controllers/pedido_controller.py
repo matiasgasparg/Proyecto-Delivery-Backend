@@ -83,12 +83,17 @@ class PedidoController:
     def create(cls):
         try:
             data = request.json
+            print(f"Data recibida: {data}")  # Imprimir los datos recibidos
+            
             if not data.get('id_cliente') or not data.get('domicilio_entrega') or not data.get('platos'):
                 raise InvalidDataError("El id_cliente, domicilio_entrega y platos son obligatorios.")
-    
-            new_pedido = Pedido(**data)
-            if Pedido.create(new_pedido):
-                return jsonify({'message': 'Pedido creado exitosamente con detalles'}), 201
+        
+            # Procesar el pedido
+            new_pedido = Pedido(**data)  # Crear el pedido
+            print(f"Nuevo pedido creado: {new_pedido}")  # Imprimir el nuevo pedido
+            
+            if Pedido.create(new_pedido):  # Crear el pedido en la base de datos
+                return jsonify({'message': 'Pedido creado exitosamente'}), 201
             else:
                 raise CustomException("Error al crear el pedido.")
         except InvalidDataError as e:
@@ -98,7 +103,6 @@ class PedidoController:
         except Exception as e:
             print(f"Error inesperado: {str(e)}")
             return jsonify({'error': 'Error en la solicitud'}), 500
-    
     @classmethod
     def update(cls, id_pedido):
         
