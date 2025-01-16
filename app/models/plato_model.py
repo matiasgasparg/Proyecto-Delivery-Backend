@@ -28,6 +28,8 @@ class Plato:
         self.precio = kwargs.get('precio')
         self.disponible = kwargs.get('disponible')
         self.tipo_plato = kwargs.get('tipo_plato')  # Atributo nuevo
+        self.imagen = kwargs.get('imagen')  # Atributo nuevo
+
 
     @classmethod
     def get(cls, id_plato):
@@ -42,14 +44,14 @@ class Plato:
         """
         try:
             query = """
-                SELECT id_plato, nombre, descripcion, precio, disponible, tipo_plato
+                SELECT id_plato, nombre, descripcion, precio, disponible, tipo_plato, imagen
                 FROM plato
                 WHERE id_plato = %s
             """
             result = DatabaseConnection.fetch_one(query, params=(id_plato,))
             if result:
-                id_plato, nombre, descripcion, precio, disponible, tipo_plato = result
-                return cls(id_plato=id_plato, nombre=nombre, descripcion=descripcion, precio=precio, disponible=disponible, tipo_plato=tipo_plato)
+                id_plato, nombre, descripcion, precio, disponible, tipo_plato, imagen = result
+                return cls(id_plato=id_plato, nombre=nombre, descripcion=descripcion, precio=precio, disponible=disponible, tipo_plato=tipo_plato, imagen=imagen)
             return None
         except Exception as e:
             print("Error al obtener el plato:", e)
@@ -67,13 +69,13 @@ class Plato:
         """
         try:
             query = """
-                SELECT id_plato, nombre, descripcion, precio, disponible, tipo_plato
+                SELECT id_plato, nombre, descripcion, precio, disponible, tipo_plato, imagen
                 FROM plato
             """
             results = DatabaseConnection.fetch_all(query)
             platos = [
-                cls(id_plato=id_plato, nombre=nombre, descripcion=descripcion, precio=precio, disponible=disponible, tipo_plato=tipo_plato)
-                for id_plato, nombre, descripcion, precio, disponible, tipo_plato in results
+                cls(id_plato=id_plato, nombre=nombre, descripcion=descripcion, precio=precio, disponible=disponible, tipo_plato=tipo_plato, imagen=imagen)
+                for id_plato, nombre, descripcion, precio, disponible, tipo_plato, imagen in results
             ]
             return platos
         except Exception as e:
@@ -95,10 +97,10 @@ class Plato:
         """
         try:
             query = """
-                INSERT INTO plato (nombre, descripcion, precio, disponible, tipo_plato)
-                VALUES (%s, %s, %s, %s, %s)
+                INSERT INTO plato (nombre, descripcion, precio, disponible, tipo_plato, imagen)
+                VALUES (%s, %s, %s, %s, %s, %s)
             """
-            params = (plato.nombre, plato.descripcion, plato.precio, plato.disponible, plato.tipo_plato)
+            params = (plato.nombre, plato.descripcion, plato.precio, plato.disponible, plato.tipo_plato, plato.imagen)
             DatabaseConnection.execute_query(query, params=params)
             return True
         except Exception as e:
@@ -130,6 +132,8 @@ class Plato:
                 'precio': "UPDATE plato SET precio = %s WHERE id_plato = %s",
                 'disponible': "UPDATE plato SET disponible = %s WHERE id_plato = %s",
                 'tipo_plato': "UPDATE plato SET tipo_plato = %s WHERE id_plato = %s",  # Campo nuevo
+                'imagen': "UPDATE plato SET imagen = %s WHERE id_plato = %s",  # Campo nuevo
+
             }
 
             if campo not in campos_validos:

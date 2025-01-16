@@ -33,7 +33,10 @@ class PlatoController:
                     "nombre": plato.nombre,
                     "descripcion": plato.descripcion,
                     "precio": plato.precio,
-                    "disponible": plato.disponible
+                    "disponible": plato.disponible,
+                    "tipo_plato":plato.tipo_plato,
+                    "imagen":plato.imagen
+
                 }
                 return jsonify(serialized_plato), 200
             else:
@@ -59,7 +62,10 @@ class PlatoController:
                     "nombre": plato.nombre,
                     "descripcion": plato.descripcion,
                     "precio": plato.precio,
-                    "disponible": plato.disponible
+                    "disponible": plato.disponible,
+                    "tipo_plato":plato.tipo_plato,
+                    "imagen":plato.imagen
+
                 } for plato in platos
             ]
             return jsonify(serialized_platos), 200
@@ -76,7 +82,7 @@ class PlatoController:
             - `descripcion` (str, opcional): Descripción del plato.
             - `precio` (float): Precio del plato.
             - `disponible` (bool): Indica si el plato está disponible.
-            - `tipo_plato` (str): Tipo del plato (por ejemplo, 'entrante', 'principal', 'postre').
+            - `tipo_plato` (str): Tipo del plato (combo=2 o no combo=1)
 
         Returns:
             tuple: JSON con un mensaje y el código de estado HTTP.
@@ -122,7 +128,7 @@ class PlatoController:
             data = request.json
             field_to_update = data.get('field')
             value = data.get('value')
-            valid_fields = ['nombre', 'descripcion', 'precio', 'disponible', 'tipo_plato']  # Añadimos tipo_plato
+            valid_fields = ['nombre', 'descripcion', 'precio', 'disponible', 'tipo_plato','imagen']  # Añadimos tipo_plato
 
             if field_to_update not in valid_fields:
                 raise InvalidDataError(f"'{field_to_update}' no es un campo válido para actualizar.")
