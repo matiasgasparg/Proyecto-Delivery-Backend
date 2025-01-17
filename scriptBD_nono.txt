@@ -1,16 +1,3 @@
--- MySQL Workbench Forward Engineering
-
-SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
-SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
-SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
-
--- -----------------------------------------------------
--- Schema mydb
--- -----------------------------------------------------
--- -----------------------------------------------------
--- Schema nono
--- -----------------------------------------------------
-
 -- -----------------------------------------------------
 -- Schema nono
 -- -----------------------------------------------------
@@ -21,7 +8,7 @@ USE `nono` ;
 -- Table `nono`.`admin`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `nono`.`admin` (
-  `id` INT NOT NULL AUTO_INCREMENT,
+  `id` INT NOT NULL,
   `dni` VARCHAR(20) NOT NULL,
   `contraseña` VARCHAR(255) NOT NULL,
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
@@ -29,61 +16,53 @@ CREATE TABLE IF NOT EXISTS `nono`.`admin` (
   PRIMARY KEY (`id`),
   UNIQUE INDEX `dni` (`dni` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 3
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
-
 
 -- -----------------------------------------------------
 -- Table `nono`.`cliente`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `nono`.`cliente` (
-  `id_cliente` INT NOT NULL AUTO_INCREMENT,
+  `id_cliente` INT NOT NULL,
   `nombre` VARCHAR(100) NOT NULL,
   `correo` VARCHAR(100) NOT NULL,
   `domicilio` VARCHAR(255) NOT NULL,
-  `telefono` VARCHAR(15) NOT NULL,
+  `telefono` VARCHAR(15) NULL DEFAULT NULL,
   PRIMARY KEY (`id_cliente`),
   UNIQUE INDEX `correo` (`correo` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 3
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
-
 
 -- -----------------------------------------------------
 -- Table `nono`.`imagen`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `nono`.`imagen` (
-  `idimagen` INT NOT NULL AUTO_INCREMENT,
+  `idimagen` INT NOT NULL,
   `url` VARCHAR(512) NOT NULL,
   `descripcion` VARCHAR(100) NULL DEFAULT NULL,
   PRIMARY KEY (`idimagen`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 270
 DEFAULT CHARACTER SET = utf8mb3;
-
 
 -- -----------------------------------------------------
 -- Table `nono`.`repartidor`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `nono`.`repartidor` (
-  `id_repartidor` INT NOT NULL AUTO_INCREMENT,
+  `id_repartidor` INT NOT NULL,
   `nombre` VARCHAR(100) NOT NULL,
   `telefono` VARCHAR(15) NOT NULL,
   `disponible` TINYINT(1) NULL DEFAULT '1',
   PRIMARY KEY (`id_repartidor`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 3
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
-
 
 -- -----------------------------------------------------
 -- Table `nono`.`pedido`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `nono`.`pedido` (
-  `id_pedido` INT NOT NULL AUTO_INCREMENT,
+  `id_pedido` INT NOT NULL,
   `id_cliente` INT NOT NULL,
   `id_repartidor` INT NULL DEFAULT NULL,
   `domicilio_entrega` VARCHAR(255) NULL DEFAULT NULL,
@@ -101,16 +80,14 @@ CREATE TABLE IF NOT EXISTS `nono`.`pedido` (
     FOREIGN KEY (`id_repartidor`)
     REFERENCES `nono`.`repartidor` (`id_repartidor`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 45
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
-
 
 -- -----------------------------------------------------
 -- Table `nono`.`opinion`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `nono`.`opinion` (
-  `id_opinion` INT NOT NULL AUTO_INCREMENT,
+  `id_opinion` INT NOT NULL,
   `id_pedido` INT NOT NULL,
   `puntuacion` INT NULL DEFAULT NULL,
   `comentario` TEXT NULL DEFAULT NULL,
@@ -121,34 +98,31 @@ CREATE TABLE IF NOT EXISTS `nono`.`opinion` (
     FOREIGN KEY (`id_pedido`)
     REFERENCES `nono`.`pedido` (`id_pedido`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 2
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
-
 
 -- -----------------------------------------------------
 -- Table `nono`.`plato`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `nono`.`plato` (
-  `id_plato` INT NOT NULL AUTO_INCREMENT,
+  `id_plato` INT NOT NULL,
   `nombre` VARCHAR(100) NOT NULL,
   `descripcion` TEXT NULL DEFAULT NULL,
   `precio` DECIMAL(10,2) NOT NULL,
   `disponible` TINYINT(1) NULL DEFAULT '1',
   `tipo_plato` INT NULL DEFAULT '1',
   `imagen` VARCHAR(255) NULL DEFAULT NULL,
+  `categoria` VARCHAR(50) NULL DEFAULT NULL,
   PRIMARY KEY (`id_plato`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 19
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
-
 
 -- -----------------------------------------------------
 -- Table `nono`.`pedidodetalle`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `nono`.`pedidodetalle` (
-  `id_pedido_detalle` INT NOT NULL AUTO_INCREMENT,
+  `id_pedido_detalle` INT NOT NULL,
   `id_pedido` INT NOT NULL,
   `id_plato` INT NULL DEFAULT NULL,
   `cantidad` INT NOT NULL,
@@ -163,16 +137,14 @@ CREATE TABLE IF NOT EXISTS `nono`.`pedidodetalle` (
     FOREIGN KEY (`id_plato`)
     REFERENCES `nono`.`plato` (`id_plato`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 64
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
-
 
 -- -----------------------------------------------------
 -- Table `nono`.`promocion`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `nono`.`promocion` (
-  `id_promocion` INT NOT NULL AUTO_INCREMENT,
+  `id_promocion` INT NOT NULL,
   `tipo` ENUM('Combo', 'Descuento') NOT NULL,
   `descripcion` TEXT NOT NULL,
   `monto_minimo` DECIMAL(10,2) NULL DEFAULT NULL,
@@ -187,16 +159,14 @@ CREATE TABLE IF NOT EXISTS `nono`.`promocion` (
     REFERENCES `nono`.`plato` (`id_plato`)
     ON DELETE CASCADE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 15
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
-
 
 -- -----------------------------------------------------
 -- Table `nono`.`pedidopromocion`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `nono`.`pedidopromocion` (
-  `id_pedido_promocion` INT NOT NULL AUTO_INCREMENT,
+  `id_pedido_promocion` INT NOT NULL,
   `id_pedido` INT NOT NULL,
   `id_promocion` INT NOT NULL,
   PRIMARY KEY (`id_pedido_promocion`),
@@ -212,12 +182,11 @@ ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
-
 -- -----------------------------------------------------
 -- Table `nono`.`reclamo`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `nono`.`reclamo` (
-  `id_reclamo` INT NOT NULL AUTO_INCREMENT,
+  `id_reclamo` INT NOT NULL,
   `id_pedido` INT NOT NULL,
   `descripcion` TEXT NOT NULL,
   `fecha_hora` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
@@ -227,11 +196,5 @@ CREATE TABLE IF NOT EXISTS `nono`.`reclamo` (
     FOREIGN KEY (`id_pedido`)
     REFERENCES `nono`.`pedido` (`id_pedido`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 2
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
-
-
-SET SQL_MODE=@OLD_SQL_MODE;
-SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
-SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

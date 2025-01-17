@@ -63,7 +63,7 @@ class ClienteController:
     def create(cls):
         try:
             data = request.json
-            if not data.get('nombre') or not data.get('correo') or not data.get('telefono'):
+            if not data.get('nombre') or not data.get('correo') or not data.get('domicilio'):
                 raise InvalidDataError("El nombre, correo y teléfono son obligatorios.")
 
             new_cliente = Cliente(**data)
@@ -76,7 +76,7 @@ class ClienteController:
         except DuplicateError as e:
             return e.get_response()
         except Exception as e:
-            return jsonify({'error': 'Error en la solicitud'}), 500
+            return jsonify({'error': 'Error inesperado al obtener crear el plato', 'details': str(e)}), 500
 
     @classmethod
     def update(cls, id_cliente):
