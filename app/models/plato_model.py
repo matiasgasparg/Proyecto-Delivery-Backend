@@ -29,6 +29,8 @@ class Plato:
         self.disponible = kwargs.get('disponible')
         self.tipo_plato = kwargs.get('tipo_plato')  # Atributo nuevo
         self.imagen = kwargs.get('imagen')  # Atributo nuevo
+        self.categoria = kwargs.get('categoria')  # Atributo nuevo
+
 
 
     @classmethod
@@ -44,14 +46,14 @@ class Plato:
         """
         try:
             query = """
-                SELECT id_plato, nombre, descripcion, precio, disponible, tipo_plato, imagen
+                SELECT id_plato, nombre, descripcion, precio, disponible, tipo_plato, imagen, categoria
                 FROM plato
                 WHERE id_plato = %s
             """
             result = DatabaseConnection.fetch_one(query, params=(id_plato,))
             if result:
-                id_plato, nombre, descripcion, precio, disponible, tipo_plato, imagen = result
-                return cls(id_plato=id_plato, nombre=nombre, descripcion=descripcion, precio=precio, disponible=disponible, tipo_plato=tipo_plato, imagen=imagen)
+                id_plato, nombre, descripcion, precio, disponible, tipo_plato, imagen ,categoria= result
+                return cls(id_plato=id_plato, nombre=nombre, descripcion=descripcion, precio=precio, disponible=disponible, tipo_plato=tipo_plato, imagen=imagen, categoria=categoria)
             return None
         except Exception as e:
             print("Error al obtener el plato:", e)
@@ -69,13 +71,13 @@ class Plato:
         """
         try:
             query = """
-                SELECT id_plato, nombre, descripcion, precio, disponible, tipo_plato, imagen
+                SELECT id_plato, nombre, descripcion, precio, disponible, tipo_plato, imagen, categoria
                 FROM plato
             """
             results = DatabaseConnection.fetch_all(query)
             platos = [
-                cls(id_plato=id_plato, nombre=nombre, descripcion=descripcion, precio=precio, disponible=disponible, tipo_plato=tipo_plato, imagen=imagen)
-                for id_plato, nombre, descripcion, precio, disponible, tipo_plato, imagen in results
+                cls(id_plato=id_plato, nombre=nombre, descripcion=descripcion, precio=precio, disponible=disponible, tipo_plato=tipo_plato, imagen=imagen, categoria=categoria)
+                for id_plato, nombre, descripcion, precio, disponible, tipo_plato, imagen, categoria in results
             ]
             return platos
         except Exception as e:
@@ -97,10 +99,10 @@ class Plato:
         """
         try:
             query = """
-                INSERT INTO plato (nombre, descripcion, precio, disponible, tipo_plato, imagen)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO plato (nombre, descripcion, precio, disponible, tipo_plato, imagen, categoria)
+                VALUES (%s, %s, %s, %s, %s, %s,%s) 
             """
-            params = (plato.nombre, plato.descripcion, plato.precio, plato.disponible, plato.tipo_plato, plato.imagen)
+            params = (plato.nombre, plato.descripcion, plato.precio, plato.disponible, plato.tipo_plato, plato.imagen,plato.categoria)
             DatabaseConnection.execute_query(query, params=params)
             return True
         except Exception as e:
@@ -133,6 +135,8 @@ class Plato:
                 'disponible': "UPDATE plato SET disponible = %s WHERE id_plato = %s",
                 'tipo_plato': "UPDATE plato SET tipo_plato = %s WHERE id_plato = %s",  # Campo nuevo
                 'imagen': "UPDATE plato SET imagen = %s WHERE id_plato = %s",  # Campo nuevo
+                'categoria': "UPDATE plato SET categoria = %s WHERE id_plato = %s",  # Campo nuevo
+
 
             }
 
@@ -191,4 +195,42 @@ class Plato:
         finally:
             DatabaseConnection.close_connection()
 
- 
+    @classmethod
+    def get_by_categoria(cls, categoria):
+        """
+        Obtiene los platos de una categoría específica.
+
+        Args:
+            categoria (str): Categoría de los platos a obtener.
+
+        Returns:
+            list: Lista de objetos Plato si se encuentran, de lo contrario, una lista vacía.
+        """
+        try:
+            query = """
+                SELECT id_plato, nombre, descripcion, precio, disponible, tipo_plato, imagen, categoria
+                FROM plato
+                WHERE categoria = %s
+            """
+            results = DatabaseConnection.fetch_all(query, params=(categoria,))
+            
+            platos = []
+            for result in results:
+                id_plato, nombre, descripcion, precio, disponible, tipo_plato, imagen, categoria = result
+                platos.append(cls(
+                    id_plato=id_plato,
+                    nombre=nombre,
+                    descripcion=descripcion,
+                    precio=precio,
+                    disponible=disponible,
+                    tipo_plato=tipo_plato,
+                    imagen=imagen,
+                    categoria=categoria
+                ))
+                
+            return platos  # Retorna una lista de platos encontrados
+        except Exception as e:
+            print("Error al obtener los platos por categoría:", e)
+            return []  # Retorna una lista vacía en caso de error
+        finally:
+            DatabaseConnection.close_connection()

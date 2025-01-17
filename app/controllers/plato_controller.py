@@ -35,7 +35,8 @@ class PlatoController:
                     "precio": plato.precio,
                     "disponible": plato.disponible,
                     "tipo_plato":plato.tipo_plato,
-                    "imagen":plato.imagen
+                    "imagen":plato.imagen,
+                    "categoria": plato.categoria
 
                 }
                 return jsonify(serialized_plato), 200
@@ -44,7 +45,7 @@ class PlatoController:
         except ProductNotFound as e:
             return e.get_response()  # Respuesta personalizada para plato no encontrado.
         except Exception as e:
-            return jsonify({'error': 'Error en la solicitud'}), 500
+            return jsonify({'error': 'Error inesperado al obtener el plato', 'details': str(e)}), 500
 
     @classmethod
     def get_all(cls):
@@ -64,7 +65,8 @@ class PlatoController:
                     "precio": plato.precio,
                     "disponible": plato.disponible,
                     "tipo_plato":plato.tipo_plato,
-                    "imagen":plato.imagen
+                    "imagen":plato.imagen,
+                    "categoria":plato.categoria
 
                 } for plato in platos
             ]
@@ -128,7 +130,7 @@ class PlatoController:
             data = request.json
             field_to_update = data.get('field')
             value = data.get('value')
-            valid_fields = ['nombre', 'descripcion', 'precio', 'disponible', 'tipo_plato','imagen']  # Añadimos tipo_plato
+            valid_fields = ['nombre', 'descripcion', 'precio', 'disponible', 'tipo_plato','imagen','categoria']  # Añadimos tipo_plato
 
             if field_to_update not in valid_fields:
                 raise InvalidDataError(f"'{field_to_update}' no es un campo válido para actualizar.")
@@ -163,3 +165,31 @@ class PlatoController:
             return e.get_response()  # Respuesta personalizada para plato no encontrado.
         except Exception as e:
             return jsonify({'error': 'Error en la solicitud'}), 500
+    @classmethod
+    def get_categoria(cls, categoria):
+        """
+        Obtiene los platos de una categoría específica y los devuelve en formato JSON.
+        """
+        try:
+            platos = Plato.get_by_categoria(categoria)
+            
+            if platos:
+                # Serializamos todos los platos en un formato adecuado para JSON
+                serialized_platos = [{
+                    "id_plato": plato.id_plato,
+                    "nombre": plato.nombre,
+                    "descripcion": plato.descripcion,
+                    "precio": plato.precio,
+                    "disponible": plato.disponible,
+                    "tipo_plato": plato.tipo_plato,
+                    "imagen": plato.imagen,
+                    "categoria": plato.categoria
+                } for plato in platos]
+
+                return jsonify(serialized_platos), 200  # Devuelve los platos en formato JSON
+            else:
+                raise ProductNotFound(categoria)  # Lanzar excepción si no se encuentran platos
+        except ProductNotFound as e:
+            return e.get_response()  # Respuesta personalizada para plato no encontrado
+        except Exception as e:
+            return jsonify({'error': 'Error inesperado al buscar los platos', 'details': str(e)}), 500

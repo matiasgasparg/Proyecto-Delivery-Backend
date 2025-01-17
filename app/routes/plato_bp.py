@@ -18,3 +18,7 @@ plato_bp.route('/<int:id_plato>', methods=['PUT'])(PlatoController.update)
 
 # Ruta para eliminar un plato por su ID
 plato_bp.route('/<int:id_plato>', methods=['DELETE'])(PlatoController.delete)
+
+# Ruta para obtener un plato específico por su categoria
+
+plato_bp.route('/<string:categoria>', methods=['GET'])(PlatoController.get_categoria)
