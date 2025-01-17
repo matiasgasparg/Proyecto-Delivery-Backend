@@ -8,3 +8,6 @@ repartidor_bp.route('/<int:id_repartidor>', methods=['GET'])(RepartidorControlle
 repartidor_bp.route('/crear', methods=['POST'])(RepartidorController.create)
 repartidor_bp.route('/<int:id_repartidor>', methods=['PUT'])(RepartidorController.update)
 repartidor_bp.route('/<int:id_repartidor>', methods=['DELETE'])(RepartidorController.delete)
+
+# Nueva ruta para filtrar repartidores disponibles
+repartidor_bp.route('/disponibles', methods=['GET'])(RepartidorController.get_available)

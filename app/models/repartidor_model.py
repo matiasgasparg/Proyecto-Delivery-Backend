@@ -98,3 +98,18 @@ class Repartidor:
             return None
         finally:
             DatabaseConnection.close_connection()
+    @classmethod
+    def get_by_disponibilidad(cls, disponible):
+        try:
+            query = """
+                SELECT id_repartidor, nombre, telefono, disponible
+                FROM Repartidor
+                WHERE disponible = %s
+            """
+            results = DatabaseConnection.fetch_all(query, params=(disponible,))
+            return [cls(id_repartidor=row[0], nombre=row[1], telefono=row[2], disponible=row[3]) for row in results]
+        except Exception as e:
+            print("Error al obtener repartidores por disponibilidad:", e)
+            return []
+        finally:
+            DatabaseConnection.close_connection()

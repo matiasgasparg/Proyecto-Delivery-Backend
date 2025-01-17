@@ -96,3 +96,22 @@ class RepartidorController:
             return e.get_response()  # Devolver 404 con el mensaje de error adecuado
         except Exception as e:
             return jsonify({'error': 'Error en la solicitud'}), 500
+    @classmethod
+    def get_available(cls):
+       try:
+           disponibles = request.args.get('disponible', default=1, type=int)  # Obtén el valor de 'disponible' de los parámetros de consulta
+           repartidores = Repartidor.get_by_disponibilidad(disponibles)
+    
+           serialized_repartidores = [
+               {
+                   "id_repartidor": repartidor.id_repartidor,
+                   "nombre": repartidor.nombre,
+                   "telefono": repartidor.telefono,
+                   "disponible": repartidor.disponible
+               } for repartidor in repartidores
+           ]
+    
+           return jsonify(serialized_repartidores), 200
+       except Exception as e:
+           print("Error al obtener repartidores disponibles:", e)
+           return jsonify({'error': 'Error en la solicitud'}), 500
