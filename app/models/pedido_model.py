@@ -60,12 +60,12 @@ class Pedido:
         try:
             # Crear el pedido en la tabla Pedido
             query = """
-                INSERT INTO Pedido (id_cliente, id_repartidor, domicilio_entrega, estado, comentario, pagado)
+                INSERT INTO Pedido (id_cliente, id_repartidor, domicilio_entrega, estado, comentario)
                 VALUES (%s, %s, %s, %s, %s)
             """
             params = (
                 pedido.id_cliente, pedido.id_repartidor, pedido.domicilio_entrega,
-                pedido.estado, pedido.comentario, pedido.pagado
+                pedido.estado, pedido.comentario
             )
             DatabaseConnection.execute_query(query, params=params)
     
