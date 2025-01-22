@@ -18,7 +18,7 @@ class PedidoController:
                 {
                     "id_plato": detalle.id_plato,
                     "cantidad": detalle.cantidad,
-                    "comentario": detalle.comentario
+                    "comentario": detalle.comentario,
                 }
                 for detalle in detalles
             ]

@@ -16,7 +16,7 @@ class Pedido:
     def get(cls, id_pedido):
         try:
             query = """
-                SELECT id_pedido, id_cliente, id_repartidor, domicilio_entrega, estado, fecha_hora, comentario
+                SELECT id_pedido, id_cliente, id_repartidor, domicilio_entrega, estado, fecha_hora, comentario, pagado
                 FROM Pedido
                 WHERE id_pedido = %s
             """
@@ -25,7 +25,7 @@ class Pedido:
                 return cls(
                     id_pedido=result[0], id_cliente=result[1], id_repartidor=result[2],
                     domicilio_entrega=result[3], estado=result[4],
-                    fecha_hora=result[5], comentario=result[6]
+                    fecha_hora=result[5], comentario=result[6], pagado=result[7]
                 )
             return None
         except Exception as e:
@@ -38,7 +38,7 @@ class Pedido:
     def get_all(cls):
         try:
             query = """
-                SELECT id_pedido, id_cliente, id_repartidor, domicilio_entrega, estado, fecha_hora, comentario
+                SELECT id_pedido, id_cliente, id_repartidor, domicilio_entrega, estado, fecha_hora, comentario, pagado
                 FROM Pedido
             """
             results = DatabaseConnection.fetch_all(query)
@@ -46,7 +46,7 @@ class Pedido:
                 cls(
                     id_pedido=row[0], id_cliente=row[1], id_repartidor=row[2],
                     domicilio_entrega=row[3], estado=row[4],
-                    fecha_hora=row[5], comentario=row[6]
+                    fecha_hora=row[5], comentario=row[6], pagado=row[7]
                 ) for row in results
             ]
         except Exception as e:
@@ -60,12 +60,12 @@ class Pedido:
         try:
             # Crear el pedido en la tabla Pedido
             query = """
-                INSERT INTO Pedido (id_cliente, id_repartidor, domicilio_entrega, estado, comentario)
+                INSERT INTO Pedido (id_cliente, id_repartidor, domicilio_entrega, estado, comentario, pagado)
                 VALUES (%s, %s, %s, %s, %s)
             """
             params = (
                 pedido.id_cliente, pedido.id_repartidor, pedido.domicilio_entrega,
-                pedido.estado, pedido.comentario
+                pedido.estado, pedido.comentario, pedido.pagado
             )
             DatabaseConnection.execute_query(query, params=params)
     

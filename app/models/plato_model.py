@@ -153,21 +153,6 @@ class Plato:
         finally:
             DatabaseConnection.close_connection()
 
-    @classmethod
-    def exists(cls, id_plato):
-        """
-        Verifica si un plato existe en la base de datos.
-
-        Args:
-            id_plato (int): ID del plato a verificar.
-
-        Returns:
-            bool: True si el plato existe; de lo contrario, False.
-        """
-        query = "SELECT COUNT(*) FROM plato WHERE id_plato = %s"
-        params = (id_plato,)
-        result = DatabaseConnection.fetch_one(query, params=params)
-        return result[0] > 0
 
 
     @classmethod
