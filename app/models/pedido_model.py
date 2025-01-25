@@ -124,3 +124,30 @@ class Pedido:
             raise Exception("Error al actualizar el pedido.")
         finally:
             DatabaseConnection.close_connection()
+    @classmethod
+    def get_by_repartidor_id(cls, id_repartidor):
+        try:
+            query = """
+                SELECT id_pedido, id_cliente, id_repartidor, domicilio_entrega, estado, fecha_hora, comentario, pagado
+                FROM pedido
+                WHERE id_repartidor = %s
+            """
+            results = DatabaseConnection.fetch_all(query, params=(id_repartidor,))
+            return [
+                cls(
+                    id_pedido=row[0],
+                    id_cliente=row[1],
+                    id_repartidor=row[2],
+                    domicilio_entrega=row[3],
+                    estado=row[4],
+                    fecha_hora=row[5],
+                    comentario=row[6],
+                    pagado=row[7]
+                )
+                for row in results
+            ]
+        except Exception as e:
+            print("Error al obtener pedidos por id_repartidor:", e)
+            return []
+        finally:
+            DatabaseConnection.close_connection()

@@ -1,8 +1,39 @@
 from flask import request, jsonify
 from ..models.repartidor_model import Repartidor
 from ..models.exceptions import CustomException, InvalidDataError, ProductNotFound, DuplicateError
+from werkzeug.security import check_password_hash
 
 class RepartidorController:
+    @classmethod
+    def login(cls):
+        try:
+            data = request.json
+            telefono = data.get('telefono')
+            contraseña = data.get('contraseña')
+
+            if not telefono or not contraseña:
+                raise InvalidDataError("telefono y contraseña son obligatorios.")
+    
+            repartidor = Repartidor.get_by_telefono(telefono)
+            if repartidor and check_password_hash(repartidor.contraseña, contraseña):
+                # Devolver el id_repartidor y otros datos que quieras incluir
+                return jsonify({
+                    'message': 'Login exitoso',
+                    'id_repartidor': repartidor.id_repartidor,  # Usando id_repartidor en lugar de id
+                    'telefono': repartidor.telefono,
+                    # Agregar otros datos que consideres necesarios
+                    'nombre': repartidor.nombre,
+                    'disponible': repartidor.disponible,
+                }), 200
+            else:
+                return jsonify({'error': 'Telefono o contraseña incorrectos'}), 401
+        except InvalidDataError as e:
+            return e.get_response()
+        except Exception as e:
+            print("Error al procesar la solicitud:", e)
+            return jsonify({'error': f'Error en la solicitud: {str(e)}'}), 500
+
+
     @classmethod
     def get(cls, id_repartidor):
         try:
@@ -37,32 +68,28 @@ class RepartidorController:
             return jsonify(serialized_repartidores), 200
         except Exception as e:
             return jsonify({'error': 'Error en la solicitud'}), 500
-
     @classmethod
     def create(cls):
         try:
             data = request.json
-            if not data.get('nombre') or not data.get('telefono'):
-                raise InvalidDataError("El nombre y teléfono son obligatorios.")
-            
-            # Verificar si ya existe un repartidor con el mismo nombre
-            existing_repartidor = Repartidor.get_by_name(data.get('nombre'))
-            if existing_repartidor:
-                raise DuplicateError(f"Ya existe un repartidor con el nombre '{data.get('nombre')}'.")
+            nombre = data.get('nombre')
+            telefono = data.get('telefono')
+            disponible=data.get('disponible')
 
-            new_repartidor = Repartidor(**data)
+            contraseña = data.get('contraseña')
+
+            if not telefono or not contraseña:
+                raise InvalidDataError("telefono y contraseña son obligatorios.")
+
+            new_repartidor = Repartidor(nombre=nombre, telefono=telefono,disponible=disponible, contraseña=contraseña)
             if Repartidor.create(new_repartidor):
-                return jsonify({'message': 'Repartidor creado exitosamente'}), 201
+                return jsonify({'message': 'repartidor creado exitosamente'}), 201
             else:
-                raise DuplicateError("Error al crear el repartidor.")
+                return jsonify({'error': 'Error al crear el Repartidor'}), 500
         except InvalidDataError as e:
-            return e.get_response()
-        except DuplicateError as e:
             return e.get_response()
         except Exception as e:
             return jsonify({'error': 'Error en la solicitud'}), 500
-
-
     @classmethod
     def update(cls, id_repartidor):
         try:
@@ -75,6 +102,7 @@ class RepartidorController:
                 raise InvalidDataError(f"'{field_to_update}' no es un campo válido para actualizar.")
 
             response = Repartidor.update(id_repartidor, field_to_update, value)
+            print(value)
             return jsonify({'message': response}), 200
         except ProductNotFound as e:
             return e.get_response()

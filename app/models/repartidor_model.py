@@ -1,4 +1,5 @@
 from ..database import DatabaseConnection
+from werkzeug.security import generate_password_hash
 
 class Repartidor:
     def __init__(self, **kwargs):
@@ -6,7 +7,7 @@ class Repartidor:
         self.nombre = kwargs.get('nombre')
         self.telefono = kwargs.get('telefono')
         self.disponible = kwargs.get('disponible', True)  # Aseguramos que disponible tenga un valor por defecto
-
+        self.contraseña= kwargs.get('contraseña')
     @classmethod
     def get(cls, id_repartidor):
         try:
@@ -43,11 +44,18 @@ class Repartidor:
     @classmethod
     def create(cls, repartidor):
         try:
+            # Generar hash de la contraseña
+            hashed_password = generate_password_hash(repartidor.contraseña)
+            
+            # Query SQL para insertar un repartidor
             query = """
-                INSERT INTO Repartidor (nombre, telefono, disponible)
-                VALUES (%s, %s, %s)
+                INSERT INTO Repartidor (nombre, telefono, disponible, contraseña)
+                VALUES (%s, %s, %s, %s)
             """
-            params = (repartidor.nombre, repartidor.telefono, repartidor.disponible)
+            # Parámetros de la consulta
+            params = (repartidor.nombre, repartidor.telefono, repartidor.disponible, hashed_password)
+            
+            # Ejecutar la consulta
             DatabaseConnection.execute_query(query, params=params)
             return True
         except Exception as e:
@@ -55,7 +63,6 @@ class Repartidor:
             return False
         finally:
             DatabaseConnection.close_connection()
-
     @classmethod
     def delete(cls, id_repartidor):
         try:
@@ -95,6 +102,23 @@ class Repartidor:
             return None
         except Exception as e:
             print("Error al obtener el repartidor por nombre:", e)
+            return None
+        finally:
+            DatabaseConnection.close_connection()
+    @classmethod
+    def get_by_telefono(cls, telefono):
+        try:
+            query = """
+                SELECT id_repartidor,nombre, telefono, disponible, contraseña
+                FROM Repartidor
+                WHERE telefono = %s
+            """
+            result = DatabaseConnection.fetch_one(query, params=(telefono,))
+            if result:
+                return cls(id_repartidor=result[0], nombre=result[1], telefono=result[2], disponible=result[3],contraseña=result[4])
+            return None
+        except Exception as e:
+            print(f"Error al obtener el admin por Telefono '{telefono}':", e)
             return None
         finally:
             DatabaseConnection.close_connection()

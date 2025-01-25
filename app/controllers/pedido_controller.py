@@ -186,4 +186,44 @@ class PedidoController:
         except Exception as e:
             print(f"Error al modificar los platos del pedido {id_pedido}: {str(e)}")
             return jsonify({'error': 'Error en la solicitud'}), 500
-    
+    @classmethod
+    def get_by_id_repartidor(cls, id_repartidor):
+        try:
+            # Obtener todos los pedidos asignados al repartidor
+            pedidos = Pedido.get_by_repartidor_id(id_repartidor)
+            
+            if not pedidos:
+                return jsonify({'message': 'No se encontraron pedidos para este repartidor'}), 404
+            
+            serialized_pedidos = []
+            for pedido in pedidos:
+                # Obtener detalles del pedido
+                detalles = PedidoDetalle.get_by_pedido_id(pedido.id_pedido)
+                serialized_detalles = [
+                    {
+                        "id_plato": detalle.id_plato,
+                        "cantidad": detalle.cantidad,
+                        "comentario": detalle.comentario
+                    }
+                    for detalle in detalles
+                ]
+                
+                # Serializar el pedido con sus detalles
+                serialized_pedido = {
+                    "id_pedido": pedido.id_pedido,
+                    "id_cliente": pedido.id_cliente,
+                    "id_repartidor": pedido.id_repartidor,
+                    "domicilio_entrega": pedido.domicilio_entrega,
+                    "estado": pedido.estado,
+                    "fecha_hora": pedido.fecha_hora,
+                    "comentario": pedido.comentario,
+                    "pagado": pedido.pagado,
+                    "detalles": serialized_detalles
+                }
+                
+                serialized_pedidos.append(serialized_pedido)
+
+            return jsonify(serialized_pedidos), 200
+        except Exception as e:
+            print(f"Error al obtener pedidos para el repartidor {id_repartidor}: {str(e)}")
+            return jsonify({'error': 'Error en la solicitud'}), 500

@@ -11,3 +11,4 @@ repartidor_bp.route('/<int:id_repartidor>', methods=['DELETE'])(RepartidorContro
 
 # Nueva ruta para filtrar repartidores disponibles
 repartidor_bp.route('/disponibles', methods=['GET'])(RepartidorController.get_available)
+repartidor_bp.route('/login', methods=['POST'])(RepartidorController.login)

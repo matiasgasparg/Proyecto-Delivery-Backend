@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS `nono`.`cliente` (
   PRIMARY KEY (`id_cliente`),
   UNIQUE INDEX `correo` (`correo` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 9
+AUTO_INCREMENT = 13
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -72,9 +72,10 @@ CREATE TABLE IF NOT EXISTS `nono`.`repartidor` (
   `nombre` VARCHAR(100) NOT NULL,
   `telefono` VARCHAR(15) NOT NULL,
   `disponible` TINYINT(1) NULL DEFAULT '1',
+  `contraseña` VARCHAR(255) NOT NULL,
   PRIMARY KEY (`id_repartidor`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 4
+AUTO_INCREMENT = 5
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -87,7 +88,7 @@ CREATE TABLE IF NOT EXISTS `nono`.`pedido` (
   `id_cliente` INT NOT NULL,
   `id_repartidor` INT NULL DEFAULT NULL,
   `domicilio_entrega` VARCHAR(255) NULL DEFAULT NULL,
-  `estado` ENUM('Pendiente', 'Aceptado', 'Rechazado', 'Preparando', 'Entregado') NULL DEFAULT 'Pendiente',
+  `estado` TINYTEXT NULL DEFAULT NULL,
   `fecha_hora` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `comentario` TEXT NULL DEFAULT NULL,
   `pagado` TINYINT NULL DEFAULT '2',
@@ -101,7 +102,7 @@ CREATE TABLE IF NOT EXISTS `nono`.`pedido` (
     FOREIGN KEY (`id_repartidor`)
     REFERENCES `nono`.`repartidor` (`id_repartidor`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 49
+AUTO_INCREMENT = 58
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -139,7 +140,7 @@ CREATE TABLE IF NOT EXISTS `nono`.`plato` (
   `categoria` VARCHAR(50) NULL DEFAULT NULL,
   PRIMARY KEY (`id_plato`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 33
+AUTO_INCREMENT = 34
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -163,7 +164,7 @@ CREATE TABLE IF NOT EXISTS `nono`.`pedidodetalle` (
     FOREIGN KEY (`id_plato`)
     REFERENCES `nono`.`plato` (`id_plato`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 8
+AUTO_INCREMENT = 46
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 

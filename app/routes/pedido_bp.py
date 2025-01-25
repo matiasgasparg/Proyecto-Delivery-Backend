@@ -10,3 +10,4 @@ pedido_bp.route('/<int:id_pedido>', methods=['PUT'])(PedidoController.update)
 pedido_bp.route('/<int:id_pedido>', methods=['DELETE'])(PedidoController.delete)
 
 pedido_bp.route('/<int:id_pedido>/modify-platos', methods=['PUT'])(PedidoController.modify_platos)
+pedido_bp.route('/repartidores/<int:id_repartidor>', methods=['GET'])(PedidoController.get_by_id_repartidor)
