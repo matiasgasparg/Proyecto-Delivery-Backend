@@ -1,8 +1,40 @@
 from flask import request, jsonify
 from ..models.cliente_model import Cliente
 from ..models.exceptions import CustomException, InvalidDataError, ProductNotFound, DuplicateError
+from werkzeug.security import check_password_hash
 
 class ClienteController:
+    @classmethod
+    def login(cls):
+        try:
+            data = request.json
+            correo = data.get('correo')
+            contraseña = data.get('contraseña')
+
+            if not correo or not contraseña:
+                raise InvalidDataError("correo y contraseña son obligatorios.")
+    
+            cliente = Cliente.get_by_email(correo)
+            if cliente and check_password_hash(cliente.contraseña, contraseña):
+                # Devolver el id_repartidor y otros datos que quieras incluir
+                return jsonify({
+                    'message': 'Login exitoso',
+                    'id_cliente': cliente.id_cliente,  # Usando id_repartidor en lugar de id
+                    'nombre': cliente.nombre,
+                    'correo': cliente.correo,
+                    'domicilio': cliente.domicilio,
+                    'telefono': cliente.telefono
+
+                }), 200
+            else:
+                return jsonify({'error': 'Correo o contraseña incorrectos'}), 401
+        except InvalidDataError as e:
+            return e.get_response()
+        except Exception as e:
+            print("Error al procesar la solicitud:", e)
+            return jsonify({'error': f'Error en la solicitud: {str(e)}'}), 500
+
+
     @classmethod
     def get(cls, id_cliente):
         try:
