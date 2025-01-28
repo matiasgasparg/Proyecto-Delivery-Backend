@@ -4,7 +4,6 @@ class DatabaseConnection:
     """
     Clase para gestionar la conexión a una base de datos MySQL utilizando el patrón Singleton.
     Permite ejecutar consultas y manejar la conexión de manera centralizada.
-    
     """
 
     # Atributo estático para almacenar la conexión única
@@ -33,7 +32,7 @@ class DatabaseConnection:
             except mysql.connector.Error as err:
                 # Manejar errores de conexión
                 print("Error de conexión a la base de datos:", err)
-
+                raise
         return cls._connection
 
     @classmethod
@@ -51,13 +50,12 @@ class DatabaseConnection:
         cls._config = config
 
     @classmethod
-    def execute_query(cls, query, database_name=None, params=None):
+    def execute_query(cls, query, params=None):
         """
         Ejecuta una consulta SQL que modifica la base de datos (e.g., INSERT, UPDATE, DELETE).
 
         Args:
             query (str): La consulta SQL a ejecutar.
-            database_name (str, opcional): Nombre de la base de datos (no utilizado actualmente).
             params (tuple, opcional): Parámetros para la consulta.
 
         Returns:
@@ -67,16 +65,49 @@ class DatabaseConnection:
         cursor.execute(query, params)
         cls._connection.commit()  # Confirma los cambios en la base de datos
 
-        return cursor
+        return cursor.rowcount
 
     @classmethod
-    def fetch_all(cls, query, database_name=None, params=None):
+    def insert(cls, query, params=None):
+        """
+        Realiza una inserción en la base de datos.
+
+        Args:
+            query (str): La consulta SQL de inserción.
+            params (tuple): Los parámetros a insertar.
+
+        Returns:
+            int: El ID de la última fila insertada.
+        """
+        cursor = cls.get_connection().cursor()
+        cursor.execute(query, params)
+        cls._connection.commit()
+        return cursor.lastrowid  # Retorna el ID de la última fila insertada
+
+    @classmethod
+    def update(cls, query, params=None):
+        """
+        Realiza una actualización en la base de datos.
+
+        Args:
+            query (str): La consulta SQL de actualización.
+            params (tuple): Los parámetros a actualizar.
+
+        Returns:
+            int: El número de filas afectadas.
+        """
+        cursor = cls.get_connection().cursor()
+        cursor.execute(query, params)
+        cls._connection.commit()
+        return cursor.rowcount  # Retorna el número de filas afectadas
+
+    @classmethod
+    def fetch_all(cls, query, params=None):
         """
         Ejecuta una consulta SQL y devuelve todos los resultados (e.g., SELECT con múltiples filas).
 
         Args:
             query (str): La consulta SQL a ejecutar.
-            database_name (str, opcional): Nombre de la base de datos (no utilizado actualmente).
             params (tuple, opcional): Parámetros para la consulta.
 
         Returns:
@@ -87,13 +118,12 @@ class DatabaseConnection:
         return cursor.fetchall()
 
     @classmethod
-    def fetch_one(cls, query, database_name=None, params=None):
+    def fetch_one(cls, query, params=None):
         """
         Ejecuta una consulta SQL y devuelve una sola fila (e.g., SELECT con un único resultado esperado).
 
         Args:
             query (str): La consulta SQL a ejecutar.
-            database_name (str, opcional): Nombre de la base de datos (no utilizado actualmente).
             params (tuple, opcional): Parámetros para la consulta.
 
         Returns:
@@ -101,7 +131,6 @@ class DatabaseConnection:
         """
         cursor = cls.get_connection().cursor()
         cursor.execute(query, params)
-
         return cursor.fetchone()
 
     @classmethod
