@@ -1,4 +1,5 @@
 from ..database import DatabaseConnection
+from werkzeug.security import generate_password_hash, check_password_hash
 
 class Cliente:
     def __init__(self, **kwargs):
@@ -7,6 +8,7 @@ class Cliente:
         self.correo = kwargs.get('correo')
         self.domicilio = kwargs.get('domicilio')
         self.telefono = kwargs.get('telefono')
+        self.contraseña = kwargs.get('contraseña')
 
     @classmethod
     def get(cls, id_cliente):
@@ -44,11 +46,13 @@ class Cliente:
     @classmethod
     def create(cls, cliente):
         try:
+            hashed_password = generate_password_hash(cliente.contraseña)
+
             query = """
-                INSERT INTO Cliente (nombre, correo, domicilio, telefono)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO Cliente (nombre, correo, domicilio, telefono,contraseña)
+                VALUES (%s, %s, %s, %s,%s)
             """
-            params = (cliente.nombre, cliente.correo, cliente.domicilio, cliente.telefono)
+            params = (cliente.nombre, cliente.correo, cliente.domicilio, cliente.telefono,hashed_password)
             DatabaseConnection.execute_query(query, params=params)
             return True
         except Exception as e:
@@ -92,7 +96,7 @@ class Cliente:
     def get_by_email(cls, email):
         try:
             query = """
-                SELECT id_cliente, nombre, correo, domicilio, telefono
+                SELECT id_cliente, nombre, correo, domicilio, telefono, contraseña
                 FROM Cliente
                 WHERE correo = %s
             """
@@ -103,7 +107,8 @@ class Cliente:
                     nombre=result[1], 
                     correo=result[2], 
                     domicilio=result[3], 
-                    telefono=result[4]
+                    telefono=result[4], 
+                    contraseña=result[5]  # Incluye la contraseña
                 )
             return None
         except Exception as e:
