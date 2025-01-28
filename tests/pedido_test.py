@@ -4,18 +4,45 @@ from app.database import DatabaseConnection
 from app.models.pedido_model import Pedido
 from app.controllers.pedido_controller import PedidoController
 import datetime
+import os
 from dotenv import load_dotenv
 import mysql.connector
+from dotenv import load_dotenv
+import os
+
+# Ruta al archivo .env.test
+dotenv_path = os.path.join(os.path.dirname(__file__), "../.env.test")
+
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+    print(f"Archivo .env.test cargado desde: {dotenv_path}")
+else:
+    raise FileNotFoundError(f"El archivo .env.test no se encontró en: {dotenv_path}")
 
 # Cargar variables de entorno antes de las pruebas
-
 def pytest_configure():
-    load_dotenv()  # Esto asegura que las variables de entorno se carguen antes de las pruebas
-
+    # Ruta explícita al archivo .env.test
+    dotenv_path = os.path.join(os.path.dirname(__file__), '.env.test')
+    if os.path.exists(dotenv_path):
+        load_dotenv(dotenv_path)
+        print(f"Archivo .env.test cargado correctamente desde {dotenv_path}")
+    else:
+        raise FileNotFoundError(f"El archivo {dotenv_path} no se encontró.")
+def test_env_cargado():
+    from dotenv import dotenv_values
+    env = dotenv_values(".env.test")  # Carga directamente el archivo
+    print("Variables cargadas:", env)
+    assert "DATABASE_NAME" in env, "DATABASE_NAME no está definido en .env.test"
+    assert env["DATABASE_NAME"] == "nono_test", "El valor de DATABASE_NAME no coincide"
+     
+# Verificar que la configuración esté correcta y se use la base de datos de prueba
+def test_configuracion_correcta():
+    print("DATABASE_NAME cargado:", os.getenv('DATABASE_NAME'))
+    assert os.getenv('DATABASE_NAME') == 'nono_test'
 # Fixture para la inicialización de la aplicación y base de datos
 @pytest.fixture
 def app():
-    app = init_app()  # Esta es la instancia de tu aplicación
+    app = init_app()  # Inicializa la app
     yield app
     # Aquí puedes agregar limpieza, si es necesario, después de todas las pruebas
 
@@ -33,35 +60,31 @@ def pedido_controller(app):
     return PedidoController(app)  # Usamos la app ya configurada
 
 # Fixture para la configuración y limpieza de la base de datos antes y después de las pruebas
-def setup(app):
-    DatabaseConnection.set_config(app.config)
-    try:
-        conn = DatabaseConnection.get_connection()
-        cursor = conn.cursor()
-        
-        # Consumir resultados pendientes si los hay
-        while cursor.nextset():  # Consume todos los conjuntos de resultados pendientes
-            pass
-        
-        cursor.execute("SELECT 1")  # Hacer una consulta simple para verificar la conexión
-        conn.commit()
-        print("Conexión exitosa a la base de datos.")
-    except mysql.connector.errors.OperationalError as e:
-        pytest.fail(f"Error de conexión a la base de datos: {e}")
-    yield
+@pytest.fixture(scope="function", autouse=True)
+def setup_and_cleanup():
+    # Configura la conexión con la base de datos usando las variables de entorno
+    db_config = {
+        "DATABASE_HOST": os.getenv("DATABASE_HOST"),
+        "DATABASE_USERNAME": os.getenv("DATABASE_USERNAME"),
+        "DATABASE_PASSWORD": os.getenv("DATABASE_PASSWORD"),
+        "DATABASE_NAME": os.getenv("DATABASE_NAME"),
+    }
+    DatabaseConnection.set_config(db_config)
 
-# Limpieza de datos de prueba
-def cleanup(conn):
-    cursor = conn.cursor()
-    # Realiza limpieza específica
-    cursor.execute("DELETE FROM pedido WHERE id_cliente = 1")  # Ejemplo de limpieza
-    conn.commit()
-    cursor.close()
+    try:
+        # Intenta obtener la conexión para verificar que es válida
+        conn = DatabaseConnection.get_connection()
+        assert conn.is_connected(), "No se pudo establecer conexión con la base de datos de prueba"
+    finally:
+        # Limpieza al final de la prueba
+        if DatabaseConnection._connection:
+            DatabaseConnection._connection.close()
+            DatabaseConnection._connection = None
 
 # Test para obtener los pedidos
 def test_get_pedidos(client):
     # Act: Realiza una solicitud GET para obtener los pedidos
-    response = client.get('pedidos/')
+    response = client.get('/pedidos/')
 
     # Assert: Verifica que la respuesta sea exitosa
     assert response.status_code == 200
@@ -70,6 +93,7 @@ def test_get_pedidos(client):
 
 # Test para crear un nuevo pedido
 def test_create_pedido(client):
+
     nuevo_pedido = {
         "id_cliente": 1,
         "id_repartidor": 1,
@@ -84,6 +108,9 @@ def test_create_pedido(client):
 
     # Act: Simula la solicitud POST para crear un pedido
     response = client.post('/pedidos/crear', json=nuevo_pedido)
+
+    # Diagnóstico: Verifica que la respuesta no sea 500 (errores de servidor)
+    print(response.data)  # Ver el cuerpo de la respuesta para obtener detalles del error
 
     # Assert: Verifica que la creación haya sido exitosa
     assert response.status_code == 201
