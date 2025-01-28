@@ -1,11 +1,8 @@
 from dotenv import dotenv_values
-import os
 
 class Config:
-    # Determinar el archivo de configuración según el entorno
-    env_file = ".env.test" if os.getenv('FLASK_ENV') == 'testing' else ".env"
-    
-    config = dotenv_values(env_file)
+    # Cargar las variables de entorno desde el archivo .env.test
+    config = dotenv_values(".env.test")
     
     SECRET_KEY = config['SECRET_KEY']
     SERVER_NAME = "127.0.0.1:5000"

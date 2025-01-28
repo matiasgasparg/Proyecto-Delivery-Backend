@@ -1,19 +1,22 @@
 import pytest
 from app import init_app
-from app.database import DatabaseConnection  # Corregir importación de DatabaseConnection
+from app.database import DatabaseConnection
 from app.models.pedido_model import Pedido
 from app.controllers.pedido_controller import PedidoController
 import datetime
+from dotenv import load_dotenv
+import mysql.connector
+
+# Cargar variables de entorno antes de las pruebas
+
+def pytest_configure():
+    load_dotenv()  # Esto asegura que las variables de entorno se carguen antes de las pruebas
 
 # Fixture para la inicialización de la aplicación y base de datos
-@pytest.fixture(scope="module")
+@pytest.fixture
 def app():
-    """
-    Inicializa la aplicación Flask una sola vez para todas las pruebas en el módulo.
-    """
-    app = init_app()  # Inicializa la aplicación Flask
-    DatabaseConnection.set_config(app.config)  # Configura la conexión a la base de datos
-    yield app  # Esta es la instancia de la app que se pasa a las pruebas
+    app = init_app()  # Esta es la instancia de tu aplicación
+    yield app
     # Aquí puedes agregar limpieza, si es necesario, después de todas las pruebas
 
 # Fixture para el cliente de la aplicación
@@ -30,51 +33,43 @@ def pedido_controller(app):
     return PedidoController(app)  # Usamos la app ya configurada
 
 # Fixture para la configuración y limpieza de la base de datos antes y después de las pruebas
-@pytest.fixture(autouse=True)
-def setup(app):  # Cambié 'config' a 'app' porque 'app' es el objeto de la aplicación Flask
-    # Configura la base de datos con la configuración de Flask
+def setup(app):
     DatabaseConnection.set_config(app.config)
-
-    # Realiza las configuraciones necesarias antes de cada prueba
-    with DatabaseConnection.get_connection() as conn:
+    try:
+        conn = DatabaseConnection.get_connection()
         cursor = conn.cursor()
-
-        # Asegúrate de que la conexión se haya establecido antes de ejecutar el script
-        if conn.is_connected():
-            print("Conexión exitosa a la base de datos.")
-        else:
-            print("Error en la conexión a la base de datos.")
-
-        # Ejecutar el script SQL de inicialización
-        with open("nono_test.sql", "r") as file:
-            sql_script = file.read()
-
-        sql_statements = sql_script.split(";")
-        for statement in sql_statements:
-            if statement.strip():
-                cursor.execute(statement)
-
+        
+        # Consumir resultados pendientes si los hay
+        while cursor.nextset():  # Consume todos los conjuntos de resultados pendientes
+            pass
+        
+        cursor.execute("SELECT 1")  # Hacer una consulta simple para verificar la conexión
         conn.commit()
-        cursor.close()
-
+        print("Conexión exitosa a la base de datos.")
+    except mysql.connector.errors.OperationalError as e:
+        pytest.fail(f"Error de conexión a la base de datos: {e}")
     yield
 
-    # Limpieza después de las pruebas
-    with DatabaseConnection.get_connection() as conn:
-        cleanup(conn)
-
-# Función de limpieza para después de las pruebas
+# Limpieza de datos de prueba
 def cleanup(conn):
     cursor = conn.cursor()
-    # Ejecutar sentencias SQL de limpieza
+    # Realiza limpieza específica
     cursor.execute("DELETE FROM pedido WHERE id_cliente = 1")  # Ejemplo de limpieza
     conn.commit()
     cursor.close()
 
+# Test para obtener los pedidos
+def test_get_pedidos(client):
+    # Act: Realiza una solicitud GET para obtener los pedidos
+    response = client.get('pedidos/')
+
+    # Assert: Verifica que la respuesta sea exitosa
+    assert response.status_code == 200
+    # Verifica que la respuesta contenga datos, si es que hay pedidos en la base de datos
+    assert isinstance(response.json, list)
 
 # Test para crear un nuevo pedido
-def test_create_pedido(client):  # Usamos el fixture 'client' en lugar de crear el cliente aquí
-    # Arrange
+def test_create_pedido(client):
     nuevo_pedido = {
         "id_cliente": 1,
         "id_repartidor": 1,
@@ -87,9 +82,9 @@ def test_create_pedido(client):  # Usamos el fixture 'client' en lugar de crear 
         ]
     }
 
-    # Act
-    response = client.post('/pedidos/crear', json=nuevo_pedido)  # Ajusta la ruta aquí
+    # Act: Simula la solicitud POST para crear un pedido
+    response = client.post('/pedidos/crear', json=nuevo_pedido)
 
-    # Assert
+    # Assert: Verifica que la creación haya sido exitosa
     assert response.status_code == 201
     assert response.json['message'] == 'Pedido creado exitosamente'
