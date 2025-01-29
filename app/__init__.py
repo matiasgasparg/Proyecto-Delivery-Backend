@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 from config import Config
-from firebase_admin import credentials, storage,initialize_app
+from firebase_admin import credentials, initialize_app, get_app,storage
 import firebase_admin
 from .routes.plato_bp import plato_bp
 from .routes.cliente_bp import cliente_bp
@@ -18,6 +18,7 @@ from .routes.img_bp import img_bp
 from .database import DatabaseConnection
 
 def init_app():
+
     """
     Crea y configura la aplicación Flask.
 
@@ -31,25 +32,22 @@ def init_app():
     # Crear una instancia de Flask con las carpetas estática y de plantillas definidas en la configuración.
     app = Flask(__name__, static_folder=Config.STATIC_FOLDER, template_folder=Config.TEMPLATE_FOLDER)
     
-    cred = credentials.Certificate("serviceAccountKey.json")
-    initialize_app(cred, {'storageBucket': 'delivery-nono-7dc3c.firebasestorage.app'})
+    # Verificar si Firebase ya ha sido inicializado
+    try:
+        get_app()
+    except ValueError:
+        # Si no se ha inicializado, lo hacemos
+        cred = credentials.Certificate("serviceAccountKey.json")
+        initialize_app(cred, {'storageBucket': 'delivery-nono-7dc3c.firebasestorage.app'})
+    
     CORS(app, supports_credentials=True)
-    app.config.from_object(
-        Config
-    )
-
-
-    # Habilitar Cross-Origin Resource Sharing (CORS) para permitir solicitudes desde diferentes orígenes.
-    CORS(app, supports_credentials=True)
-
-    # Cargar la configuración desde el objeto Config definido en el módulo `config`.
     app.config.from_object(Config)
 
     # Configurar la conexión a la base de datos utilizando los parámetros definidos en la configuración.
     DatabaseConnection.set_config(app.config)
 
     # Registrar los Blueprints de las rutas relacionadas con las diferentes entidades.
-    app.register_blueprint(img_bp, url_prefix = '/imagen')
+    app.register_blueprint(img_bp, url_prefix='/imagen')
     app.register_blueprint(plato_bp, url_prefix='/platos')
     app.register_blueprint(cliente_bp, url_prefix='/clientes')
     app.register_blueprint(repartidor_bp, url_prefix='/repartidores')
