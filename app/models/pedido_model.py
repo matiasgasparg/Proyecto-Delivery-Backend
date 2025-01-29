@@ -151,3 +151,31 @@ class Pedido:
             return []
         finally:
             DatabaseConnection.close_connection()
+
+    @classmethod
+    def get_by_cliente(cls, id_cliente):
+        try:
+            query = """
+                SELECT id_pedido, id_cliente, id_repartidor, domicilio_entrega, estado, fecha_hora, comentario, pagado
+                FROM pedido
+                WHERE id_cliente = %s
+            """
+            results = DatabaseConnection.fetch_all(query, params=(id_cliente,))
+            return [
+                cls(
+                    id_pedido=row[0],
+                    id_cliente=row[1],
+                    id_repartidor=row[2],
+                    domicilio_entrega=row[3],
+                    estado=row[4],
+                    fecha_hora=row[5],
+                    comentario=row[6],
+                    pagado=row[7]
+                )
+                for row in results
+            ]
+        except Exception as e:
+            print("Error al obtener pedidos por id_cliente:", e)
+            return []
+        finally:
+            DatabaseConnection.close_connection()
