@@ -219,3 +219,23 @@ class Plato:
             return []  # Retorna una lista vacía en caso de error
         finally:
             DatabaseConnection.close_connection()
+    @classmethod
+    def exists(cls, id_plato):
+        """
+        Verifica si un plato existe en la base de datos.
+    
+        Args:
+            id_plato (int): ID del plato a verificar.
+    
+        Returns:
+            bool: True si el plato existe, False si no.
+        """
+        try:
+            query = "SELECT COUNT(*) FROM plato WHERE id_plato = %s"
+            result = DatabaseConnection.fetch_one(query, params=(id_plato,))
+            return result[0] > 0  # Devuelve True si el plato existe, False si no
+        except Exception as e:
+            print("Error al verificar la existencia del plato:", e)
+            return False
+        finally:
+            DatabaseConnection.close_connection()
