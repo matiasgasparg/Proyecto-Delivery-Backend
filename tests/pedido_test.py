@@ -10,7 +10,6 @@ import mysql.connector
 from dotenv import load_dotenv
 import os
 
-# Ruta al archivo .env.test
 dotenv_path = os.path.join(os.path.dirname(__file__), "../.env.test")
 
 if os.path.exists(dotenv_path):
@@ -19,9 +18,7 @@ if os.path.exists(dotenv_path):
 else:
     raise FileNotFoundError(f"El archivo .env.test no se encontró en: {dotenv_path}")
 
-# Cargar variables de entorno antes de las pruebas
 def pytest_configure():
-    # Ruta explícita al archivo .env.test
     dotenv_path = os.path.join(os.path.dirname(__file__), '.env.test')
     if os.path.exists(dotenv_path):
         load_dotenv(dotenv_path)
@@ -30,16 +27,14 @@ def pytest_configure():
         raise FileNotFoundError(f"El archivo {dotenv_path} no se encontró.")
 def test_env_cargado():
     from dotenv import dotenv_values
-    env = dotenv_values(".env.test")  # Carga directamente el archivo
+    env = dotenv_values(".env.test")  
     print("Variables cargadas:", env)
     assert "DATABASE_NAME" in env, "DATABASE_NAME no está definido en .env.test"
     assert env["DATABASE_NAME"] == "nono_test", "El valor de DATABASE_NAME no coincide"
      
-# Verificar que la configuración esté correcta y se use la base de datos de prueba
 def test_configuracion_correcta():
     print("DATABASE_NAME cargado:", os.getenv('DATABASE_NAME'))
     assert os.getenv('DATABASE_NAME') == 'nono_test'
-# Fixture para la inicialización de la aplicación y base de datos
 @pytest.fixture
 def app():
     app = init_app()  # Inicializa la app
